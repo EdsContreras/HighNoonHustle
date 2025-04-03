@@ -79,15 +79,16 @@ export class GameManager {
     
     // Initialize player in a position closer to the obstacles
     const startX = Math.floor(GRID_CELLS_X / 2);
-    // Start player higher up on the screen (20% from the bottom)
-    const startY = Math.floor(GRID_CELLS_Y * 0.8);
+    // Start player higher up on the screen (only 10% from the bottom)
+    const startY = Math.floor(GRID_CELLS_Y * 0.9);
     
     this.player = new Player(this.p, startX, startY, this.cellWidth, this.cellHeight);
   }
   
   private calculateGrid() {
     this.cellWidth = this.p.width / GRID_CELLS_X;
-    this.cellHeight = this.p.height / GRID_CELLS_Y;
+    // Increase the height of cells by 20% to make lanes wider vertically
+    this.cellHeight = (this.p.height / GRID_CELLS_Y) * 1.2;
   }
   
   public startLevel(level: number) {
@@ -109,8 +110,8 @@ export class GameManager {
     
     // Reset player - starting higher up on the screen
     const startX = Math.floor(GRID_CELLS_X / 2);
-    // Start player at 20% from the bottom
-    const startY = Math.floor(GRID_CELLS_Y * 0.8);
+    // Start player at only 10% from the bottom
+    const startY = Math.floor(GRID_CELLS_Y * 0.9);
     if (this.player) {
       this.player.reset(startX, startY);
       this.player.handleResize(this.cellWidth, this.cellHeight);
@@ -246,11 +247,11 @@ export class GameManager {
       }
       
       if (reachedGoal) {
-        // Reset player position to starting position (20% from bottom)
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.8));
+        // Reset player position to starting position (10% from bottom)
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.9));
       } else if (!this.player.isMoving()) {
         // Player reached top but not in a goal, reset position to starting position
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.8));
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.9));
       }
     }
     
@@ -339,9 +340,9 @@ export class GameManager {
     if (this.lives <= 0) {
       this.handleGameOver();
     } else {
-      // Reset player position to starting position (20% from bottom)
+      // Reset player position to starting position (10% from bottom)
       if (this.player) {
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.8));
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.9));
       }
     }
   }
