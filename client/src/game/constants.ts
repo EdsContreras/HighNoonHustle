@@ -5,7 +5,7 @@ export const BASE_WIDTH = 800;
 export const BASE_HEIGHT = 600;
 export const GRID_CELLS_X = 10;
 export const GRID_CELLS_Y = 30; // Extended for scrolling
-export const VISIBLE_CELLS_Y = 8; // How many cells visible at once
+export const VISIBLE_CELLS_Y = 10; // How many cells visible at once (increased for better visibility)
 
 // Player
 export const PLAYER_WIDTH = 40;
