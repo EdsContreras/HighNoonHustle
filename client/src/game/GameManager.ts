@@ -201,8 +201,16 @@ export class GameManager {
     // Draw background
     this.p.background(COLORS.BACKGROUND);
     
+    // Draw a test rectangle to debug
+    this.p.fill(255, 0, 0);
+    this.p.rect(100, 100, 100, 100);
+    
+    console.log("Drawing game, lanes:", this.lanes.length, "goals:", this.goals.length);
+    
     if (this.backgroundImage) {
       this.p.image(this.backgroundImage, 0, 0, this.p.width, this.p.height);
+    } else {
+      console.log("No background image loaded");
     }
     
     // Draw lanes
@@ -218,6 +226,8 @@ export class GameManager {
     // Draw player
     if (this.player) {
       this.player.draw();
+    } else {
+      console.log("No player to draw");
     }
   }
   

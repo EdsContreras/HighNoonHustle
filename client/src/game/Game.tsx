@@ -12,15 +12,24 @@ const Game = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
   const gameManagerRef = useRef<GameManager | null>(null);
+  const gameStateRef = useRef<'start' | 'playing' | 'gameOver' | 'levelComplete'>('start');
   const [gameState, setGameState] = useState<'start' | 'playing' | 'gameOver' | 'levelComplete'>('start');
   const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  const { setBackgroundMusic, setHitSound, setSuccessSound, toggleMute } = useAudio();
+  const { setBackgroundMusic, setHitSound, setSuccessSound, toggleMute, backgroundMusic } = useAudio();
+  
+  // Update ref when gameState changes
+  useEffect(() => {
+    gameStateRef.current = gameState;
+    console.log("Game state ref updated to:", gameState);
+  }, [gameState]);
 
   // Initialize audio
   useEffect(() => {
+    console.log("Initializing audio...");
     // Load sound effects
     const bgMusic = new Audio('/sounds/background.mp3');
     bgMusic.loop = true;
@@ -45,20 +54,25 @@ const Game = () => {
 
   // Initialize p5.js sketch
   useEffect(() => {
+    console.log("Initializing p5.js sketch...", gameContainerRef.current, p5InstanceRef.current);
     if (!gameContainerRef.current || p5InstanceRef.current) return;
 
     // Create the p5 sketch
     const sketch = (p: p5) => {
+      console.log("Setting up p5 sketch");
       // Create a game manager
       const gameManager = new GameManager(p, {
         onGameOver: () => {
+          console.log("Game over!");
           setGameState('gameOver');
         },
         onLevelComplete: (levelScore: number) => {
+          console.log("Level complete!");
           setScore(prevScore => prevScore + levelScore);
           setGameState('levelComplete');
         },
         onLifeLost: (remainingLives: number) => {
+          console.log("Life lost, remaining:", remainingLives);
           setLives(remainingLives);
         },
         updateScore: (newScore: number) => {
@@ -67,21 +81,43 @@ const Game = () => {
       });
       
       gameManagerRef.current = gameManager;
+      
+      // No subscription needed - we'll use the gameStateRef directly
 
       p.setup = () => {
+        console.log("P5 setup running");
         // Create canvas that fills the container
         const canvas = p.createCanvas(
           gameContainerRef.current?.clientWidth || 800, 
           gameContainerRef.current?.clientHeight || 600
         );
-        canvas.parent(gameContainerRef.current!);
+        
+        if (gameContainerRef.current) {
+          canvas.parent(gameContainerRef.current);
+          console.log("Canvas created with dimensions:", p.width, p.height);
+        } else {
+          console.error("Game container ref is null in p5 setup");
+        }
         
         // Set up game
         gameManager.setup();
+        setIsInitialized(true);
       };
 
       p.draw = () => {
-        if (gameState === 'playing') {
+        // Always draw something even if not playing - helps with debugging
+        p.background(200);
+        
+        // Draw a test rectangle to see if p5 is working at all
+        p.fill(0, 255, 0);
+        p.rect(50, 50, 50, 50);
+        
+        // Use ref instead of the React state to avoid closure issues
+        if (gameStateRef.current === 'playing') {
+          // Only log occasionally to avoid console spam
+          if (p.frameCount % 60 === 0) {
+            console.log("Game is playing, frame:", p.frameCount);
+          }
           gameManager.update();
           gameManager.draw();
         }
@@ -100,14 +136,20 @@ const Game = () => {
 
       // Handle keyboard input
       p.keyPressed = () => {
-        if (gameState === 'playing') {
+        if (gameStateRef.current === 'playing') {
+          console.log("Key pressed:", p.keyCode);
           gameManager.handleKeyPress(p.keyCode);
         }
       };
     };
 
     // Create new p5 instance
-    p5InstanceRef.current = new p5(sketch);
+    try {
+      console.log("Creating p5 instance");
+      p5InstanceRef.current = new p5(sketch);
+    } catch (error) {
+      console.error("Error creating p5 instance:", error);
+    }
 
     // Cleanup function
     return () => {
@@ -120,26 +162,49 @@ const Game = () => {
 
   // Update game manager when level changes
   useEffect(() => {
+    console.log("Game state or level changed:", gameState, currentLevel);
     if (gameManagerRef.current && gameState === 'playing') {
+      console.log("Starting level:", currentLevel);
       gameManagerRef.current.startLevel(currentLevel);
+      
+      // Get audio functions from store
+      const audioStore = useAudio.getState();
+      
+      // Play background music when game is playing
+      if (audioStore.backgroundMusic && !audioStore.isMuted) {
+        console.log("Attempting to play background music");
+        audioStore.playBackgroundMusic();
+      }
     }
   }, [currentLevel, gameState]);
 
   // Handle game state changes
   const startGame = () => {
+    console.log("Starting game");
     setScore(0);
     setLives(3);
     setCurrentLevel(1);
+    
+    // Get audio functions from store
+    const audioStore = useAudio.getState();
+    
+    // Unmute audio if needed
+    if (audioStore.isMuted) {
+      toggleMute();
+    }
+    
+    // Update game state to playing
     setGameState('playing');
-    toggleMute(); // Unmute audio when the game starts
   };
 
   const continueToNextLevel = () => {
+    console.log("Continuing to next level");
     setCurrentLevel(prev => prev + 1);
     setGameState('playing');
   };
 
   const restartGame = () => {
+    console.log("Restarting game");
     setScore(0);
     setLives(3);
     setCurrentLevel(1);

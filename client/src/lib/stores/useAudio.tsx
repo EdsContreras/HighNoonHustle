@@ -15,6 +15,8 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playBackgroundMusic: () => void;
+  stopBackgroundMusic: () => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -28,14 +30,46 @@ export const useAudio = create<AudioState>((set, get) => ({
   setSuccessSound: (sound) => set({ successSound: sound }),
   
   toggleMute: () => {
-    const { isMuted } = get();
+    const { isMuted, backgroundMusic } = get();
     const newMutedState = !isMuted;
     
-    // Just update the muted state
+    // Update the muted state
     set({ isMuted: newMutedState });
+    
+    // Handle background music
+    if (backgroundMusic) {
+      if (newMutedState) {
+        backgroundMusic.pause();
+      } else {
+        // Try to play or resume background music
+        backgroundMusic.play().catch(error => {
+          console.error("Could not play background music:", error);
+        });
+      }
+    }
     
     // Log the change
     console.log(`Sound ${newMutedState ? 'muted' : 'unmuted'}`);
+  },
+
+  playBackgroundMusic: () => {
+    const { backgroundMusic, isMuted } = get();
+    if (backgroundMusic && !isMuted) {
+      console.log("Playing background music");
+      backgroundMusic.play().catch(error => {
+        console.error("Could not play background music:", error);
+      });
+    } else {
+      console.log("Background music not played (muted or not set)");
+    }
+  },
+
+  stopBackgroundMusic: () => {
+    const { backgroundMusic } = get();
+    if (backgroundMusic) {
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
+    }
   },
   
   playHit: () => {
@@ -51,7 +85,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       const soundClone = hitSound.cloneNode() as HTMLAudioElement;
       soundClone.volume = 0.3;
       soundClone.play().catch(error => {
-        console.log("Hit sound play prevented:", error);
+        console.error("Hit sound play prevented:", error);
       });
     }
   },
@@ -67,7 +101,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       successSound.currentTime = 0;
       successSound.play().catch(error => {
-        console.log("Success sound play prevented:", error);
+        console.error("Success sound play prevented:", error);
       });
     }
   }
