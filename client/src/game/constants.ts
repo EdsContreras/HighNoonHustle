@@ -27,7 +27,7 @@ export const MAX_OBSTACLE_SPEED = 5;
 export enum ObstacleType {
   HORSE = 'horse',
   TUMBLEWEED = 'tumbleweed',
-  STAGECOACH = 'stagecoach',
+  TRAIN = 'train',
   CACTUS = 'cactus'
 }
 
@@ -45,8 +45,8 @@ export const OBSTACLE_PROPERTIES = {
     speedMultiplier: 2,
     deadly: true
   },
-  [ObstacleType.STAGECOACH]: {
-    width: 120,
+  [ObstacleType.TRAIN]: {
+    width: 140,
     height: 60,
     speedMultiplier: 0.8,
     deadly: true
@@ -115,7 +115,7 @@ export const LEVELS: Record<number, LevelConfig> = {
       { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.7 },
       { type: 'safe', direction: 'left' }, // Middle safe zone
       { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.6 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.STAGECOACH, obstacleFrequency: 0.4 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.4 },
       { type: 'safe', direction: 'left' } // Goal zone
     ],
     goalCount: 3,
@@ -126,11 +126,11 @@ export const LEVELS: Record<number, LevelConfig> = {
       { type: 'safe', direction: 'left' }, // Starting zone
       { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.7 },
       { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.9 },
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.STAGECOACH, obstacleFrequency: 0.5 },
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.5 },
       { type: 'safe', direction: 'left' }, // Middle safe zone
       { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.8 },
       { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 1.0 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.STAGECOACH, obstacleFrequency: 0.6 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.6 },
       { type: 'safe', direction: 'left' } // Goal zone
     ],
     goalCount: 4,
@@ -141,11 +141,11 @@ export const LEVELS: Record<number, LevelConfig> = {
       { type: 'safe', direction: 'left' }, // Starting zone
       { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.9 },
       { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 1.1 },
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.STAGECOACH, obstacleFrequency: 0.7 },
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.7 },
       { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 1.0 },
       { type: 'safe', direction: 'left' }, // Middle safe zone
       { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 1.2 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.STAGECOACH, obstacleFrequency: 0.8 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.8 },
       { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 1.1 },
       { type: 'safe', direction: 'left' } // Goal zone
     ],

@@ -38,7 +38,12 @@ export class Obstacle {
   
   private async loadAssets() {
     try {
-      this.image = await loadImage(this.p, `/assets/${this.type}.svg`);
+      // Use PNG for horse and train, SVG for other types
+      if (this.type === 'horse' || this.type === 'train') {
+        this.image = await loadImage(this.p, `/assets/${this.type}.png`);
+      } else {
+        this.image = await loadImage(this.p, `/assets/${this.type}.svg`);
+      }
     } catch (error) {
       console.error(`Failed to load image for ${this.type}:`, error);
     }

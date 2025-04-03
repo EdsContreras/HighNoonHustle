@@ -1,5 +1,5 @@
-import React from 'react';
-import { HeartCrack } from 'lucide-react';
+import React from "react";
+import { HeartCrack } from "lucide-react";
 
 interface HUDProps {
   score: number;
@@ -13,11 +13,11 @@ const HUD: React.FC<HUDProps> = ({ score, level, lives }) => {
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-2">
         <span className="text-white font-bold">Level: {level}</span>
       </div>
-      
+
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-2">
         <span className="text-white font-bold">Score: {score}</span>
       </div>
-      
+
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-2 flex items-center">
         {[...Array(lives)].map((_, i) => (
           <HeartCrack key={i} className="h-5 w-5 text-red-500 mx-0.5" />
