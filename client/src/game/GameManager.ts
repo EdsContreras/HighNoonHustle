@@ -77,9 +77,10 @@ export class GameManager {
   public setup() {
     this.calculateGrid();
     
-    // Initialize player at the bottom middle of the screen
+    // Initialize player in a position closer to the obstacles
     const startX = Math.floor(GRID_CELLS_X / 2);
-    const startY = GRID_CELLS_Y - 1;
+    // Start player higher up on the screen (20% from the bottom)
+    const startY = Math.floor(GRID_CELLS_Y * 0.8);
     
     this.player = new Player(this.p, startX, startY, this.cellWidth, this.cellHeight);
   }
@@ -106,9 +107,10 @@ export class GameManager {
     // Calculate grid
     this.calculateGrid();
     
-    // Reset player
+    // Reset player - starting higher up on the screen
     const startX = Math.floor(GRID_CELLS_X / 2);
-    const startY = GRID_CELLS_Y - 1;
+    // Start player at 20% from the bottom
+    const startY = Math.floor(GRID_CELLS_Y * 0.8);
     if (this.player) {
       this.player.reset(startX, startY);
       this.player.handleResize(this.cellWidth, this.cellHeight);
@@ -244,11 +246,11 @@ export class GameManager {
       }
       
       if (reachedGoal) {
-        // Reset player position
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), GRID_CELLS_Y - 1);
+        // Reset player position to starting position (20% from bottom)
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.8));
       } else if (!this.player.isMoving()) {
-        // Player reached top but not in a goal, reset position
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), GRID_CELLS_Y - 1);
+        // Player reached top but not in a goal, reset position to starting position
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.8));
       }
     }
     
@@ -337,9 +339,9 @@ export class GameManager {
     if (this.lives <= 0) {
       this.handleGameOver();
     } else {
-      // Reset player position
+      // Reset player position to starting position (20% from bottom)
       if (this.player) {
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), GRID_CELLS_Y - 1);
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.8));
       }
     }
   }
