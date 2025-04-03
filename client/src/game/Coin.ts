@@ -26,7 +26,7 @@ export class Coin {
   
   private async loadAssets() {
     try {
-      this.image = await loadImage(this.p, '/assets/coin.png');
+      this.image = await loadImage(this.p, '/assets/coin.svg');
     } catch (error) {
       console.error('Failed to load coin image:', error);
     }

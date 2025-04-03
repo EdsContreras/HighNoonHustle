@@ -169,8 +169,9 @@ export class GameManager {
     if (this.player) {
       const playerGridY = this.player.getGridPosition().y;
       
-      // Calculate ideal camera position (keeping player in the middle of visible area)
-      const idealCameraY = (playerGridY - VISIBLE_CELLS_Y / 2) * this.cellHeight;
+      // Adjusted ideal camera position (positioning player closer to the bottom)
+      // This makes the player see more of what's ahead by placing player in the bottom third
+      const idealCameraY = (playerGridY - (VISIBLE_CELLS_Y * 0.7)) * this.cellHeight;
       
       // Smoothly move camera towards ideal position
       this.cameraOffsetY = Math.max(0, Math.min(
