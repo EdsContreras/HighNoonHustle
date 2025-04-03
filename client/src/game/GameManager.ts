@@ -211,6 +211,16 @@ export class GameManager {
       const collisions = lane.checkCollisions(playerRect);
       
       if (collisions.length > 0) {
+        console.log("Collision detected!", {
+          playerPos: this.player.getGridPosition(),
+          playerRect,
+          obstacles: collisions.map(o => ({
+            type: o.type,
+            x: o.x,
+            y: o.y,
+            rect: o.getRect()
+          }))
+        });
         this.handleCollision();
       }
     }

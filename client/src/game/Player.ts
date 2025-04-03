@@ -95,6 +95,18 @@ export class Player {
       this.p.rectMode(this.p.CENTER);
       this.p.rect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
     }
+    
+    // Uncomment for debugging to show the hitbox
+    // const hitbox = this.getRect();
+    // this.p.noFill();
+    // this.p.stroke(255, 0, 0);
+    // this.p.rectMode(this.p.CORNER);
+    // this.p.rect(
+    //   hitbox.x - pixelX - this.cellWidth / 2, 
+    //   hitbox.y - pixelY - this.cellHeight / 2, 
+    //   hitbox.width, 
+    //   hitbox.height
+    // );
 
     this.p.pop();
   }
@@ -153,11 +165,16 @@ export class Player {
   }
 
   public getRect() {
+    // Create a smaller hitbox for the player (70% of the actual size)
+    // and center it within the cell to avoid false collisions
+    const hitboxWidth = PLAYER_WIDTH * 0.7;
+    const hitboxHeight = PLAYER_HEIGHT * 0.7;
+    
     return {
-      x: this.x * this.cellWidth,
-      y: this.y * this.cellHeight,
-      width: PLAYER_WIDTH,
-      height: PLAYER_HEIGHT,
+      x: (this.x * this.cellWidth) + (PLAYER_WIDTH - hitboxWidth) / 2,
+      y: (this.y * this.cellHeight) + (PLAYER_HEIGHT - hitboxHeight) / 2,
+      width: hitboxWidth,
+      height: hitboxHeight,
     };
   }
 

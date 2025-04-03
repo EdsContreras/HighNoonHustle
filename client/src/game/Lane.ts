@@ -139,15 +139,31 @@ export class Lane {
     for (const obstacle of this.obstacles) {
       const obstacleRect = obstacle.getRect();
       
-      // Basic AABB collision detection
+      // Apply a 10% reduction to obstacle collision size for more forgiving gameplay
+      const collisionMargin = 0.1;
+      const adjustedObstacleRect = {
+        x: obstacleRect.x + obstacleRect.width * collisionMargin / 2,
+        y: obstacleRect.y + obstacleRect.height * collisionMargin / 2,
+        width: obstacleRect.width * (1 - collisionMargin),
+        height: obstacleRect.height * (1 - collisionMargin)
+      };
+      
+      // Basic AABB collision detection with adjusted boundaries
       if (
-        playerRect.x < obstacleRect.x + obstacleRect.width &&
-        playerRect.x + playerRect.width > obstacleRect.x &&
-        playerRect.y < obstacleRect.y + obstacleRect.height &&
-        playerRect.y + playerRect.height > obstacleRect.y
+        playerRect.x < adjustedObstacleRect.x + adjustedObstacleRect.width &&
+        playerRect.x + playerRect.width > adjustedObstacleRect.x &&
+        playerRect.y < adjustedObstacleRect.y + adjustedObstacleRect.height &&
+        playerRect.y + playerRect.height > adjustedObstacleRect.y
       ) {
         // Only add deadly obstacles to collisions
         if (obstacle.isDeadly()) {
+          console.log("Obstacle collision details:", {
+            obstacleType: obstacle.type,
+            originalRect: obstacleRect,
+            adjustedRect: adjustedObstacleRect,
+            playerRect: playerRect,
+            laneY: this.y
+          });
           collisions.push(obstacle);
         }
       }
