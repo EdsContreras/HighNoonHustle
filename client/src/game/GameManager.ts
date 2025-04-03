@@ -87,8 +87,8 @@ export class GameManager {
   
   private calculateGrid() {
     this.cellWidth = this.p.width / GRID_CELLS_X;
-    // Increase the height of cells by 20% to make lanes wider vertically
-    this.cellHeight = (this.p.height / GRID_CELLS_Y) * 1.2;
+    // Increase the height of cells by 40% to make lanes wider vertically
+    this.cellHeight = (this.p.height / GRID_CELLS_Y) * 1.4;
   }
   
   public startLevel(level: number) {
@@ -110,8 +110,8 @@ export class GameManager {
     
     // Reset player - starting higher up on the screen
     const startX = Math.floor(GRID_CELLS_X / 2);
-    // Start player at only 10% from the bottom
-    const startY = Math.floor(GRID_CELLS_Y * 0.9);
+    // Start player at 40% from the bottom
+    const startY = Math.floor(GRID_CELLS_Y * 0.6);
     if (this.player) {
       this.player.reset(startX, startY);
       this.player.handleResize(this.cellWidth, this.cellHeight);
@@ -172,9 +172,9 @@ export class GameManager {
     if (this.player) {
       const playerGridY = this.player.getGridPosition().y;
       
-      // Adjusted ideal camera position (positioning player much closer to the bottom)
-      // This makes the player see more of what's ahead by placing player in the bottom fifth
-      const idealCameraY = (playerGridY - (VISIBLE_CELLS_Y * 0.9)) * this.cellHeight;
+      // Adjusted ideal camera position (positioning player 40% from bottom)
+      // This makes the player see more of what's ahead by placing player at the 40% mark
+      const idealCameraY = (playerGridY - (VISIBLE_CELLS_Y * 0.6)) * this.cellHeight;
       
       // Smoothly move camera towards ideal position
       this.cameraOffsetY = Math.max(0, Math.min(
@@ -247,11 +247,11 @@ export class GameManager {
       }
       
       if (reachedGoal) {
-        // Reset player position to starting position (10% from bottom)
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.9));
+        // Reset player position to starting position (40% from bottom)
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.6));
       } else if (!this.player.isMoving()) {
         // Player reached top but not in a goal, reset position to starting position
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.9));
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.6));
       }
     }
     
@@ -340,9 +340,9 @@ export class GameManager {
     if (this.lives <= 0) {
       this.handleGameOver();
     } else {
-      // Reset player position to starting position (10% from bottom)
+      // Reset player position to starting position (40% from bottom)
       if (this.player) {
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.9));
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.6));
       }
     }
   }
