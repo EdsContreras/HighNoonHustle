@@ -4,7 +4,8 @@
 export const BASE_WIDTH = 800;
 export const BASE_HEIGHT = 600;
 export const GRID_CELLS_X = 10;
-export const GRID_CELLS_Y = 10;
+export const GRID_CELLS_Y = 30; // Extended for scrolling
+export const VISIBLE_CELLS_Y = 10; // How many cells visible at once
 
 // Player
 export const PLAYER_WIDTH = 40;
@@ -16,7 +17,13 @@ export const PLAYER_MOVE_SPEED = 0.3; // movement speed (0.0-1.0, higher = faste
 export const STARTING_LIVES = 3;
 export const POINTS_FOR_CROSSING = 100;
 export const POINTS_FOR_GOAL = 500;
+export const POINTS_FOR_COIN = 50;
 export const TIME_BONUS_FACTOR = 10;
+
+// Coin settings
+export const COIN_WIDTH = 30;
+export const COIN_HEIGHT = 30;
+export const COINS_PER_LANE = 3; // Average number of coins per lane
 
 // Level design
 export const INITIAL_OBSTACLE_SPEED = 1;
@@ -111,46 +118,70 @@ export const LEVELS: Record<number, LevelConfig> = {
   1: {
     lanes: [
       { type: 'safe', direction: 'left' }, // Starting zone
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.5 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.7 },
-      { type: 'safe', direction: 'left' }, // Middle safe zone
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.6 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.4 },
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.3 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.4 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.3 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.2 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.4 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.3 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.2 },
       { type: 'safe', direction: 'left' } // Goal zone
     ],
     goalCount: 3,
-    timeLimit: 60,
+    timeLimit: 90,
   },
   2: {
     lanes: [
       { type: 'safe', direction: 'left' }, // Starting zone
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.7 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.9 },
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.5 },
-      { type: 'safe', direction: 'left' }, // Middle safe zone
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.8 },
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 1.0 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.6 },
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.4 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.5 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.3 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.4 },
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.6 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.3 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.5 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.4 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.3 },
       { type: 'safe', direction: 'left' } // Goal zone
     ],
     goalCount: 4,
-    timeLimit: 90,
+    timeLimit: 120,
   },
   3: {
     lanes: [
       { type: 'safe', direction: 'left' }, // Starting zone
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.9 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 1.1 },
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.7 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 1.0 },
-      { type: 'safe', direction: 'left' }, // Middle safe zone
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 1.2 },
-      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.8 },
-      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 1.1 },
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.5 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.6 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.4 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.5 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.6 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.4 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.5 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.7 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.4 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.HORSE, obstacleFrequency: 0.6 },
+      { type: 'safe', direction: 'left' }, // Safe zone
+      { type: 'road', direction: 'left', obstacleType: ObstacleType.TUMBLEWEED, obstacleFrequency: 0.7 },
+      { type: 'road', direction: 'right', obstacleType: ObstacleType.TRAIN, obstacleFrequency: 0.5 },
       { type: 'safe', direction: 'left' } // Goal zone
     ],
     goalCount: 5,
-    timeLimit: 120,
+    timeLimit: 150,
   },
   // Add more levels as needed
 };

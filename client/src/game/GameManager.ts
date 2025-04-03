@@ -2,12 +2,18 @@ import p5 from 'p5';
 import { Player } from './Player';
 import { Lane } from './Lane';
 import { Goal } from './Goal';
+import { Coin } from './Coin';
 import { 
   GRID_CELLS_X,
   GRID_CELLS_Y,
+  VISIBLE_CELLS_Y,
   STARTING_LIVES,
   POINTS_FOR_CROSSING,
   POINTS_FOR_GOAL,
+  POINTS_FOR_COIN,
+  COIN_WIDTH,
+  COIN_HEIGHT,
+  COINS_PER_LANE,
   TIME_BONUS_FACTOR,
   KEYS,
   LEVELS,
@@ -29,6 +35,7 @@ export class GameManager {
   private player: Player | null;
   private lanes: Lane[];
   private goals: Goal[];
+  private coins: Coin[];
   private cellWidth: number;
   private cellHeight: number;
   private lives: number;
@@ -37,6 +44,7 @@ export class GameManager {
   private levelStartTime: number;
   private levelTimeLimit: number;
   private backgroundImage: p5.Image | null;
+  private cameraOffsetY: number; // Camera offset for scrolling
   
   constructor(p: p5, callbacks: GameCallbacks) {
     this.p = p;
@@ -44,6 +52,7 @@ export class GameManager {
     this.player = null;
     this.lanes = [];
     this.goals = [];
+    this.coins = [];
     this.cellWidth = 0;
     this.cellHeight = 0;
     this.lives = STARTING_LIVES;
@@ -52,6 +61,7 @@ export class GameManager {
     this.levelStartTime = 0;
     this.levelTimeLimit = 0;
     this.backgroundImage = null;
+    this.cameraOffsetY = 0;
     
     this.loadAssets();
   }
@@ -88,6 +98,8 @@ export class GameManager {
     // Reset game state
     this.lanes = [];
     this.goals = [];
+    this.coins = [];
+    this.cameraOffsetY = 0; // Reset camera position
     this.levelStartTime = this.p.millis();
     this.levelTimeLimit = levelConfig.timeLimit * 1000; // Convert to milliseconds
     
@@ -120,6 +132,19 @@ export class GameManager {
       );
       
       this.lanes.push(lane);
+      
+      // Add coins to safe zones (with some randomness)
+      if (laneConfig.type === 'safe' && i > 0 && i < levelConfig.lanes.length - 1) {
+        // Don't add coins to the start or end zones
+        const coinsForLane = Math.floor(Math.random() * (COINS_PER_LANE + 1)); // 0 to COINS_PER_LANE coins
+        
+        for (let j = 0; j < coinsForLane; j++) {
+          const x = Math.floor(Math.random() * GRID_CELLS_X) * this.cellWidth + this.cellWidth / 2;
+          const y = laneY;
+          
+          this.coins.push(new Coin(this.p, x, y, COIN_WIDTH, COIN_HEIGHT));
+        }
+      }
     }
     
     // Create goals
@@ -140,6 +165,20 @@ export class GameManager {
     // Update player
     this.player.update();
     
+    // Update camera position based on player
+    if (this.player) {
+      const playerGridY = this.player.getGridPosition().y;
+      
+      // Calculate ideal camera position (keeping player in the middle of visible area)
+      const idealCameraY = (playerGridY - VISIBLE_CELLS_Y / 2) * this.cellHeight;
+      
+      // Smoothly move camera towards ideal position
+      this.cameraOffsetY = Math.max(0, Math.min(
+        (GRID_CELLS_Y - VISIBLE_CELLS_Y) * this.cellHeight, // Max camera Y
+        idealCameraY
+      ));
+    }
+    
     // Update lanes and check collisions
     for (const lane of this.lanes) {
       lane.update(this.p.width);
@@ -153,6 +192,33 @@ export class GameManager {
       
       if (collisions.length > 0) {
         this.handleCollision();
+      }
+    }
+    
+    // Check for coin collisions
+    if (this.player && !this.player.isMoving()) {
+      const playerRect = this.player.getRect();
+      
+      for (let i = this.coins.length - 1; i >= 0; i--) {
+        const coin = this.coins[i];
+        
+        if (!coin.isCollected() && coin.contains(
+          playerRect.x, 
+          playerRect.y, 
+          playerRect.width, 
+          playerRect.height
+        )) {
+          // Collect the coin
+          coin.collect();
+          
+          // Add points for collecting coin
+          this.score += POINTS_FOR_COIN;
+          this.callbacks.updateScore(this.score);
+          
+          // Play success sound
+          const { playSuccess } = useAudio.getState();
+          playSuccess();
+        }
       }
     }
     
@@ -201,16 +267,14 @@ export class GameManager {
     // Draw background
     this.p.background(COLORS.BACKGROUND);
     
-    // Draw a test rectangle to debug
-    this.p.fill(255, 0, 0);
-    this.p.rect(100, 100, 100, 100);
+    // Save current transformation
+    this.p.push();
     
-    console.log("Drawing game, lanes:", this.lanes.length, "goals:", this.goals.length);
+    // Apply camera offset for scrolling
+    this.p.translate(0, -this.cameraOffsetY);
     
     if (this.backgroundImage) {
       this.p.image(this.backgroundImage, 0, 0, this.p.width, this.p.height);
-    } else {
-      console.log("No background image loaded");
     }
     
     // Draw lanes
@@ -223,12 +287,23 @@ export class GameManager {
       goal.draw();
     }
     
+    // Draw coins
+    for (const coin of this.coins) {
+      if (!coin.isCollected()) {
+        coin.draw(this.cameraOffsetY);
+      }
+    }
+    
     // Draw player
     if (this.player) {
       this.player.draw();
-    } else {
-      console.log("No player to draw");
     }
+    
+    // Restore transformation
+    this.p.pop();
+    
+    // Draw HUD elements (outside of camera transform)
+    // This is intentionally left blank as HUD is handled by React components
   }
   
   public handleKeyPress(keyCode: number) {
@@ -296,6 +371,11 @@ export class GameManager {
     // Update lanes
     for (const lane of this.lanes) {
       lane.handleResize(this.cellHeight);
+    }
+    
+    // Update coins
+    for (const coin of this.coins) {
+      coin.handleResize(this.cellWidth, this.cellHeight);
     }
   }
 }
