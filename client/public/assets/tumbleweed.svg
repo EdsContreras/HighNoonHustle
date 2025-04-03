@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <!-- Tumbleweed body -->
+  <circle cx="25" cy="25" r="20" fill="none" stroke="#a67c52" stroke-width="1" />
+  <circle cx="25" cy="25" r="15" fill="none" stroke="#a67c52" stroke-width="1" />
+  <circle cx="25" cy="25" r="10" fill="none" stroke="#a67c52" stroke-width="1" />
+  
+  <!-- Spikes -->
+  <line x1="5" y1="25" x2="45" y2="25" stroke="#a67c52" stroke-width="1" />
+  <line x1="25" y1="5" x2="25" y2="45" stroke="#a67c52" stroke-width="1" />
+  
+  <!-- Diagonal lines -->
+  <line x1="10" y1="10" x2="40" y2="40" stroke="#a67c52" stroke-width="1" />
+  <line x1="40" y1="10" x2="10" y2="40" stroke="#a67c52" stroke-width="1" />
+  
+  <!-- More detail -->
+  <path d="M15 15 Q25 5 35 15" fill="none" stroke="#a67c52" stroke-width="1" />
+  <path d="M15 35 Q25 45 35 35" fill="none" stroke="#a67c52" stroke-width="1" />
+  <path d="M15 20 Q25 30 35 20" fill="none" stroke="#a67c52" stroke-width="1" />
+</svg>

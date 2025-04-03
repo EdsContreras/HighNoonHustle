@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Sky -->
+  <rect x="0" y="0" width="800" height="150" fill="#87ceeb" />
+  
+  <!-- Sun -->
+  <circle cx="700" cy="80" r="40" fill="#ffff00" />
+  <circle cx="700" cy="80" r="50" fill="#ffff00" opacity="0.3" />
+  
+  <!-- Mountains in the background -->
+  <polygon points="0,150 100,50 200,120 300,40 400,100 500,30 600,90 700,20 800,150" fill="#8b4513" />
+  
+  <!-- Desert -->
+  <rect x="0" y="150" width="800" height="450" fill="#e4d7a8" />
+  
+  <!-- Small mountains or hills in the distance -->
+  <polygon points="50,250 150,200 250,260 350,190 450,240 550,180 650,230 750,190 800,250 800,300 0,300 0,250" fill="#c19a6b" />
+  
+  <!-- Cacti in the background -->
+  <g transform="translate(100, 220) scale(0.5)">
+    <rect x="20" y="10" width="10" height="70" rx="5" fill="#2d7541" />
+    <path d="M20 30 L10 30 L10 50 C10 55 15 55 20 50 Z" fill="#2d7541" />
+    <path d="M30 20 L40 20 L40 40 C40 45 35 45 30 40 Z" fill="#2d7541" />
+  </g>
+  
+  <g transform="translate(500, 240) scale(0.6)">
+    <rect x="20" y="10" width="10" height="70" rx="5" fill="#2d7541" />
+    <path d="M20 30 L10 30 L10 50 C10 55 15 55 20 50 Z" fill="#2d7541" />
+    <path d="M30 20 L40 20 L40 40 C40 45 35 45 30 40 Z" fill="#2d7541" />
+  </g>
+  
+  <g transform="translate(650, 230) scale(0.4)">
+    <rect x="20" y="10" width="10" height="70" rx="5" fill="#2d7541" />
+    <path d="M20 30 L10 30 L10 50 C10 55 15 55 20 50 Z" fill="#2d7541" />
+    <path d="M30 20 L40 20 L40 40 C40 45 35 45 30 40 Z" fill="#2d7541" />
+  </g>
+</svg>
