@@ -12,6 +12,9 @@ export class Obstacle {
   public type: ObstacleType;
   private direction: number;
   private image: p5.Image | null;
+  private animationFrame: number = 0;
+  private animationSpeed: number = 0.2; // Controls animation speed
+  private rotationAngle: number = 0; // For spinning tumbleweeds
   
   constructor(
     p: p5, 
@@ -59,15 +62,56 @@ export class Obstacle {
     } else if (this.direction < 0 && this.x < -this.width / 2) {
       this.x = canvasWidth + this.width / 2;
     }
+    
+    // Update animation frame
+    this.animationFrame += this.animationSpeed;
+    
+    // Update rotation for tumbleweeds
+    if (this.type === ObstacleType.TUMBLEWEED) {
+      // Spin faster in the direction of movement
+      this.rotationAngle += 0.1 * this.direction;
+    }
   }
   
   public draw() {
     this.p.push();
     this.p.translate(this.x, this.y);
     
-    // Flip the image if moving left
-    if (this.direction < 0) {
-      this.p.scale(-1, 1);
+    // Apply tumbleweed rotation
+    if (this.type === ObstacleType.TUMBLEWEED) {
+      this.p.rotate(this.rotationAngle);
+      // Make tumbleweeds darker for better visibility
+      this.p.tint(120, 80, 40); // Darker brown
+    } else if (this.type === ObstacleType.HORSE) {
+      // For horses, apply galloping animation
+      const gallop = Math.sin(this.animationFrame) * 2;
+      
+      // Flip the image if moving left
+      if (this.direction < 0) {
+        this.p.scale(-1, 1);
+      }
+      
+      // Apply a slight y-offset for galloping effect
+      this.p.translate(0, gallop);
+      
+      // Make horses slightly darker for better visibility
+      this.p.tint(170, 140, 110);
+    } else if (this.type === ObstacleType.TRAIN) {
+      // Flip the image if moving left
+      if (this.direction < 0) {
+        this.p.scale(-1, 1);
+      }
+      
+      // Make trains darker for better visibility
+      this.p.tint(150, 150, 150); // Darker gray
+    } else if (this.type === ObstacleType.CACTUS) {
+      // Make cacti darker for better visibility
+      this.p.tint(0, 120, 0); // Darker green
+    } else {
+      // Flip the image if moving left
+      if (this.direction < 0) {
+        this.p.scale(-1, 1);
+      }
     }
     
     // Draw the obstacle sprite
@@ -81,11 +125,25 @@ export class Obstacle {
         this.height
       );
     } else {
-      // Fallback if image isn't loaded
-      this.p.fill(150, 100, 50);
+      // Fallback if image isn't loaded - with darker colors
+      if (this.type === ObstacleType.HORSE) {
+        this.p.fill(110, 70, 30); // Darker brown for horses
+      } else if (this.type === ObstacleType.TUMBLEWEED) {
+        this.p.fill(100, 60, 20); // Darker brown for tumbleweeds
+      } else if (this.type === ObstacleType.TRAIN) {
+        this.p.fill(70, 70, 70); // Darker gray for trains
+      } else if (this.type === ObstacleType.CACTUS) {
+        this.p.fill(0, 100, 0); // Darker green for cacti
+      } else {
+        this.p.fill(100, 60, 20);
+      }
+      
       this.p.rectMode(this.p.CENTER);
       this.p.rect(0, 0, this.width, this.height);
     }
+    
+    // Reset tint after drawing
+    this.p.noTint();
     
     this.p.pop();
   }
