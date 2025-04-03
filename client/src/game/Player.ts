@@ -1,5 +1,5 @@
 import p5 from 'p5';
-import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_MOVE_COOLDOWN, KEYS, GRID_CELLS_X, GRID_CELLS_Y } from './constants';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_MOVE_COOLDOWN, PLAYER_MOVE_SPEED, KEYS, GRID_CELLS_X, GRID_CELLS_Y } from './constants';
 import { loadImage } from './assets';
 
 export class Player {
@@ -42,20 +42,22 @@ export class Player {
   
   public update() {
     // Move the player towards the target position
-    const moveSpeed = 10;
-    const currentX = this.x * this.cellWidth;
-    const currentY = this.y * this.cellHeight;
-    const targetX = this.targetX * this.cellWidth;
-    const targetY = this.targetY * this.cellHeight;
+    const currentX = this.x;
+    const currentY = this.y;
+    const targetX = this.targetX;
+    const targetY = this.targetY;
     
     const distX = targetX - currentX;
     const distY = targetY - currentY;
     
-    if (Math.abs(distX) > 0.1 || Math.abs(distY) > 0.1) {
-      this.x += distX * 0.2;
-      this.y += distY * 0.2;
+    // Use the configurable move speed constant for smoother movement
+    if (Math.abs(distX) > 0.01 || Math.abs(distY) > 0.01) {
+      // Apply the movement speed - higher value = faster movement
+      this.x += distX * PLAYER_MOVE_SPEED;
+      this.y += distY * PLAYER_MOVE_SPEED;
       this.moving = true;
     } else {
+      // Snap to target position when very close
       this.x = this.targetX;
       this.y = this.targetY;
       this.moving = false;
@@ -92,14 +94,22 @@ export class Player {
   public handleKeyPress(keyCode: number) {
     const currentTime = this.p.millis();
     
-    // Check if enough time has passed since the last move
-    if (currentTime - this.lastMoveTime < PLAYER_MOVE_COOLDOWN || this.moving) {
+    // Only check for cooldown, no longer block movement if already moving
+    // This allows more responsive queueing of the next move
+    if (currentTime - this.lastMoveTime < PLAYER_MOVE_COOLDOWN) {
       return false;
     }
     
     let moved = false;
     const oldX = this.targetX;
     const oldY = this.targetY;
+    
+    // If player is already more than one cell away from target, don't queue another move
+    // This prevents player from queueing too many moves and losing control
+    const distToTarget = Math.abs(this.x - this.targetX) + Math.abs(this.y - this.targetY);
+    if (distToTarget > 1.0) {
+      return false;
+    }
     
     // Handle movement keys
     if ((keyCode === KEYS.UP || keyCode === KEYS.W) && this.targetY > 0) {
@@ -118,6 +128,7 @@ export class Player {
     
     if (moved) {
       this.lastMoveTime = currentTime;
+      console.log("Player moving to:", this.targetX, this.targetY);
     }
     
     return moved;

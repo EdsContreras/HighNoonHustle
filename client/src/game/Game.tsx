@@ -6,6 +6,7 @@ import GameOverScreen from '../components/GameOverScreen';
 import LevelCompleteScreen from '../components/LevelCompleteScreen';
 import HUD from '../components/HUD';
 import { useAudio } from '../lib/stores/useAudio';
+import { KEYS, PLAYER_MOVE_COOLDOWN } from './constants';
 
 // Game component that manages the p5.js sketch
 const Game = () => {
@@ -118,6 +119,11 @@ const Game = () => {
           if (p.frameCount % 60 === 0) {
             console.log("Game is playing, frame:", p.frameCount);
           }
+          
+          // Check for keyboard input
+          checkKeys();
+          
+          // Update and draw game
           gameManager.update();
           gameManager.draw();
         }
@@ -134,11 +140,36 @@ const Game = () => {
         }
       };
 
-      // Handle keyboard input
+      // Store key states for continuous key detection
+      const keyStates: Record<number, boolean> = {};
+      const lastKeyHandled: Record<number, number> = {};
+      
+      // Handle keyboard input - record key down events
       p.keyPressed = () => {
+        keyStates[p.keyCode] = true;
+        return false; // prevent default browser behavior
+      };
+      
+      // Handle key release
+      p.keyReleased = () => {
+        keyStates[p.keyCode] = false;
+        return false; // prevent default browser behavior
+      };
+      
+      // Check for held keys in the draw loop
+      const checkKeys = () => {
         if (gameStateRef.current === 'playing') {
-          console.log("Key pressed:", p.keyCode);
-          gameManager.handleKeyPress(p.keyCode);
+          // Check relevant keys
+          [KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D].forEach(keyCode => {
+            if (keyStates[keyCode]) {
+              // Handle held keys with a small delay
+              const now = p.millis();
+              if (!lastKeyHandled[keyCode] || now - lastKeyHandled[keyCode] > PLAYER_MOVE_COOLDOWN/2) {
+                gameManager.handleKeyPress(keyCode);
+                lastKeyHandled[keyCode] = now;
+              }
+            }
+          });
         }
       };
     };

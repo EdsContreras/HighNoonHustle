@@ -9,7 +9,8 @@ export const GRID_CELLS_Y = 10;
 // Player
 export const PLAYER_WIDTH = 40;
 export const PLAYER_HEIGHT = 40;
-export const PLAYER_MOVE_COOLDOWN = 200; // ms between moves
+export const PLAYER_MOVE_COOLDOWN = 100; // ms between moves (reduced for better responsiveness)
+export const PLAYER_MOVE_SPEED = 0.3; // movement speed (0.0-1.0, higher = faster)
 
 // Game mechanics
 export const STARTING_LIVES = 3;
