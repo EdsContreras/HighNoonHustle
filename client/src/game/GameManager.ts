@@ -45,6 +45,7 @@ export class GameManager {
   private levelTimeLimit: number;
   private backgroundImage: p5.Image | null;
   private cameraOffsetY: number; // Camera offset for scrolling
+  private targetCameraY: number; // Target camera position for smooth transitions
   
   constructor(p: p5, callbacks: GameCallbacks) {
     this.p = p;
@@ -62,6 +63,7 @@ export class GameManager {
     this.levelTimeLimit = 0;
     this.backgroundImage = null;
     this.cameraOffsetY = 0;
+    this.targetCameraY = 0; // Initialize target camera position
     
     this.loadAssets();
   }
@@ -102,6 +104,7 @@ export class GameManager {
     this.goals = [];
     this.coins = [];
     this.cameraOffsetY = 0; // Reset camera position
+    this.targetCameraY = 0; // Reset target camera position
     this.levelStartTime = this.p.millis();
     this.levelTimeLimit = levelConfig.timeLimit * 1000; // Convert to milliseconds
     
@@ -162,6 +165,9 @@ export class GameManager {
     }
   }
   
+  // Camera smoothing factor controls how quickly the camera follows the player
+  private readonly CAMERA_SMOOTHING = 0.12; // Lower = smoother but slower transitions
+    
   public update() {
     if (!this.player) return;
     
@@ -176,11 +182,21 @@ export class GameManager {
       // This makes the player see more of what's ahead by placing player at the 45% mark
       const idealCameraY = (playerGridY - (VISIBLE_CELLS_Y * 0.55)) * this.cellHeight;
       
-      // Smoothly move camera towards ideal position
-      this.cameraOffsetY = Math.max(0, Math.min(
+      // Set target camera position with bounds checking
+      this.targetCameraY = Math.max(0, Math.min(
         (GRID_CELLS_Y - VISIBLE_CELLS_Y) * this.cellHeight, // Max camera Y
         idealCameraY
       ));
+      
+      // Smoothly interpolate current camera position towards target
+      // This creates a more fluid camera movement
+      const delta = this.targetCameraY - this.cameraOffsetY;
+      
+      // If player is moving, use faster transition for more responsive feel
+      const smoothingFactor = this.player.isMoving() ? this.CAMERA_SMOOTHING * 1.5 : this.CAMERA_SMOOTHING;
+      
+      // Apply smooth transition
+      this.cameraOffsetY += delta * smoothingFactor;
     }
     
     // Update lanes and check collisions
