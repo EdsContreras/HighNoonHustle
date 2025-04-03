@@ -17,7 +17,7 @@ export const PLAYER_MOVE_SPEED = 0.3; // movement speed (0.0-1.0, higher = faste
 export const STARTING_LIVES = 3;
 export const POINTS_FOR_CROSSING = 100;
 export const POINTS_FOR_GOAL = 500;
-export const POINTS_FOR_COIN = 50;
+export const POINTS_FOR_COIN = 500; // Increased 10x from original 50
 export const TIME_BONUS_FACTOR = 10;
 
 // Coin settings
