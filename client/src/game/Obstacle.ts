@@ -173,18 +173,16 @@ export class Obstacle {
         // Looking at the image, the smokestack is almost at the very front of the train
         // and positioned at the top of the train's body
         
-        // Looking at the latest screenshot, I can see exactly where the smoke needs to be
-        // The black smokestack is at the front of the train (not the back as I thought)
-        // It's almost like a small black chimney sticking up from the very front
+        // Per user instructions, we'll place the smoke exactly 50% from the front of the train
+        // This is a simple, precise position that will be easy to see
         
-        // For rightward moving trains, the smokestack is at the front-left
-        // For leftward moving trains, the smokestack is at the front-right (when flipped)
-        const frontOffset = this.width * 0.38; // Positioned at the front part of the train based on screenshot
-        const smokeStackX = this.direction > 0 ? -frontOffset : frontOffset;
+        // Position the smoke exactly in the center of the train
+        // The train's coordinate system is centered, so 0 is the center
+        // For all trains, position the smoke exactly at 0 (center)
+        const smokeStackX = 0; // Exactly at center, regardless of direction
         
-        // Vertical position: the smokestack is clearly visible in the screenshot
-        // It's at the top of the train and slightly forward
-        const smokeStackY = -this.height * 0.38; // Aligned with the top of the smokestack
+        // Set vertical position to be clearly visible at the top of the train
+        const smokeStackY = -this.height * 0.5; // At the very top of the train
         
         // Add the new smoke particles with initial velocity matching train direction
         // This makes the smoke initially move with the train before drifting upward
