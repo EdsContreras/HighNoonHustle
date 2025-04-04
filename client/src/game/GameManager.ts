@@ -47,7 +47,6 @@ export class GameManager {
   private backgroundImage: p5.Image | null;
   private cameraOffsetY: number; // Camera offset for scrolling
   private targetCameraY: number; // Target camera position for smooth transitions
-  private lanePushDownOffset: number = 0; // Offset to push lanes down for money bags
   
   constructor(p: p5, callbacks: GameCallbacks) {
     this.p = p;
@@ -153,16 +152,11 @@ export class GameManager {
       this.player.handleResize(this.cellWidth, this.cellHeight);
     }
     
-    // Create lanes with a top offset to make room for money bags
+    // Create lanes
     const laneHeight = this.cellHeight;
-    // Add a top offset to push all lanes down and make room for money bags
-    // Define a variable that will be shared between lane and goal creation
-    this.lanePushDownOffset = laneHeight * 1.8; // Add almost 2 lanes of space at the top
-    
     for (let i = 0; i < levelConfig.lanes.length; i++) {
       const laneConfig = levelConfig.lanes[i];
-      // Add the top offset to push everything down
-      const laneY = i * laneHeight + laneHeight / 2 + this.lanePushDownOffset;
+      const laneY = i * laneHeight + laneHeight / 2;
       
       const lane = new Lane(
         this.p,
@@ -208,22 +202,18 @@ export class GameManager {
     const goalCount = levelConfig.goalCount;
     const goalWidth = this.p.width / goalCount;
     
-    // Use the same top offset for goals to align them with the first lane
-    // (Using the same variable from above)
-    
     for (let i = 0; i < goalCount; i++) {
       const goalX = i * goalWidth + goalWidth / 2;
-      // Position the goals at the top with our offset
-      const goalY = laneHeight / 2 + this.lanePushDownOffset * 0.3; // Just a bit down from absolute top
+      const goalY = laneHeight / 2; // Top of the screen
       
       // Pass the current level to the Goal constructor
-      // Quadruple the height of the end zone (money bags)
+      // Double the height of the end zone (money bags)
       this.goals.push(new Goal(
         this.p, 
         goalX, 
         goalY, 
         goalWidth * 0.8, 
-        laneHeight * 3.2, // Doubled again from 1.6 to 3.2 (quadruple original)
+        laneHeight * 1.6, // Doubled from 0.8 to 1.6
         this.level // Pass the current level
       ));
     }

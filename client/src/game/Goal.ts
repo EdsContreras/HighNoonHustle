@@ -33,9 +33,8 @@ export class Goal {
       this.image = await loadImage(this.p, '/assets/moneybag.png');
       
       // Debug log the creation of this money bag with size info
-      const widthMultiplier = this.level === 1 ? 0.7 : 1.0;
-      const heightMultiplier = this.level === 1 ? 1.4 : 2.0;
-      console.log(`Money bag created for Level ${this.level} with size multipliers - Width: ${widthMultiplier}, Height: ${heightMultiplier} (${this.width}x${this.height})`);
+      const sizeMultiplier = this.level === 1 ? 0.7 : 1.0;
+      console.log(`Money bag created for Level ${this.level} with size multiplier: ${sizeMultiplier} (${this.width}x${this.height})`);
     } catch (error) {
       console.error('Failed to load money bag image:', error);
     }
@@ -45,13 +44,13 @@ export class Goal {
     this.p.push();
     
     // Calculate actual display size based on level
-    // Apply 30% reduction only for Level 1, but increase height in all cases
-    const widthMultiplier = this.level === 1 ? 0.7 : 1.0; // 70% of original width for level 1
-    const heightMultiplier = this.level === 1 ? 1.4 : 2.0; // Doubled height for visibility to match quadrupled zone
+    // Apply 30% reduction only for Level 1
+    const sizeMultiplier = this.level === 1 ? 0.7 : 1.0; // 70% of original size for level 1
     
-    // Calculate the display width and height with different multipliers
-    const displayWidth = this.width * widthMultiplier;
-    const displayHeight = this.height * heightMultiplier; // Apply extra height multiplier
+    // Calculate the display width and height
+    // Note: We're maintaining the aspect ratio of the image even though the end zone is taller
+    const displayWidth = this.width * sizeMultiplier;
+    const displayHeight = this.height * sizeMultiplier;
     
     if (this.image) {
       // Draw with money bag image
@@ -76,7 +75,7 @@ export class Goal {
       
       // Debug log in first frame
       if (this.p.frameCount < 10) {
-        console.log(`Money bag in level ${this.level} drawn at size ${displayWidth.toFixed(1)}x${displayHeight.toFixed(1)} (W: ${widthMultiplier * 100}%, H: ${heightMultiplier * 100}%) in quadrupled height zone`);
+        console.log(`Money bag in level ${this.level} drawn at size ${displayWidth.toFixed(1)}x${displayHeight.toFixed(1)} (${sizeMultiplier * 100}% of original) in doubled height zone`);
       }
       
     } else {
@@ -110,9 +109,9 @@ export class Goal {
     const sizeMultiplier = this.level === 1 ? 0.7 : 1.0;
     const actualWidth = this.width * sizeMultiplier;
     
-    // With the quadrupled height of the end zone, we make the hitbox significantly larger horizontally
-    // to make it even easier for players to reach the goal
-    const hitboxMultiplier = 1.6; // 60% wider hitbox for much easier gameplay with taller end zone
+    // With the doubled height of the end zone, we make the hitbox slightly larger horizontally
+    // to make it easier for players to reach the goal
+    const hitboxMultiplier = 1.2; // 20% wider hitbox for easier gameplay with taller end zone
     
     // Check if the point is within the adjusted width with hitbox multiplier
     return pointX > this.x - (actualWidth * hitboxMultiplier) / 2 && 
