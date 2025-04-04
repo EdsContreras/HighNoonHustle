@@ -218,24 +218,23 @@ export class Lane {
     // Center everything in the lane
     const y = this.y;
     
-    // Draw the two rails first (so sleepers appear on top)
-    this.p.strokeWeight(4); // Increased from 3 for better visibility
-    this.p.stroke(80, 80, 80); // Darker gray for rails
+    // Draw gravel/ballast under the tracks first
+    this.p.noStroke();
+    this.p.fill(100, 100, 100, 40); // Light gray with some transparency
+    this.p.rect(0, y - this.height * 0.4, width, this.height * 0.8);
+    
+    // Draw the two rails (so sleepers appear below rails)
+    this.p.strokeWeight(6); // Increased from 4 for better visibility
+    this.p.stroke(70, 70, 70); // Darker gray for rails
     
     // Rail spacing - distance between the two rails
-    const railSpacing = this.height * 0.45; // Increased from 40% to 45% of lane height
-    
-    // Top rail
-    this.p.line(0, y - railSpacing/2, width, y - railSpacing/2);
-    
-    // Bottom rail
-    this.p.line(0, y + railSpacing/2, width, y + railSpacing/2);
+    const railSpacing = this.height * 0.5; // Increased from 45% to 50% of lane height
     
     // Draw wooden sleepers (ties) perpendicular to the rails
     this.p.fill(120, 60, 20); // Rich brown color for wooden sleepers
-    const sleeperWidth = railSpacing + 15; // Wider sleepers for better visibility
-    const sleeperHeight = 10; // Thicker sleepers
-    const sleeperSpacing = 35; // Increased spacing for our zoomed view
+    const sleeperWidth = railSpacing + 20; // Wider sleepers for better visibility
+    const sleeperHeight = 12; // Thicker sleepers
+    const sleeperSpacing = 40; // Increased spacing for our zoomed view
     
     this.p.rectMode(this.p.CENTER); // Draw from center
     
@@ -244,9 +243,14 @@ export class Lane {
       this.p.rect(x, y, sleeperHeight, sleeperWidth);
     }
     
-    // Draw gravel/ballast under the tracks
-    this.p.rectMode(this.p.CORNER);
-    this.p.noStroke();
+    // Draw rails on top of sleepers
+    this.p.stroke(70, 70, 70); // Darker gray for rails
+    
+    // Top rail
+    this.p.line(0, y - railSpacing/2, width, y - railSpacing/2);
+    
+    // Bottom rail
+    this.p.line(0, y + railSpacing/2, width, y + railSpacing/2);
     
     // Reset drawing settings
     this.p.rectMode(this.p.CORNER); // Reset to default

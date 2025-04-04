@@ -3,13 +3,13 @@
 // Canvas and scaling
 export const BASE_WIDTH = 800;
 export const BASE_HEIGHT = 600;
-export const GRID_CELLS_X = 8; // Decreased from 10 to zoom in
+export const GRID_CELLS_X = 6; // Further decreased from 8 to zoom in more
 export const GRID_CELLS_Y = 30; // Extended for scrolling
-export const VISIBLE_CELLS_Y = 8; // Decreased from 10 to zoom in
+export const VISIBLE_CELLS_Y = 6; // Further decreased from 8 to zoom in more
 
 // Player
-export const PLAYER_WIDTH = 50; // Increased from 40
-export const PLAYER_HEIGHT = 50; // Increased from 40
+export const PLAYER_WIDTH = 65; // Further increased from 50
+export const PLAYER_HEIGHT = 65; // Further increased from 50
 export const PLAYER_MOVE_COOLDOWN = 100; // ms between moves (reduced for better responsiveness)
 export const PLAYER_MOVE_SPEED = 0.3; // movement speed (0.0-1.0, higher = faster)
 
@@ -21,8 +21,8 @@ export const POINTS_FOR_COIN = 500; // Increased 10x from original 50
 export const TIME_BONUS_FACTOR = 10;
 
 // Coin settings
-export const COIN_WIDTH = 40; // Increased from 30
-export const COIN_HEIGHT = 40; // Increased from 30
+export const COIN_WIDTH = 50; // Further increased to 50
+export const COIN_HEIGHT = 50; // Further increased to 50
 export const COINS_PER_LANE = 3; // Average number of coins per lane
 
 // Level design
@@ -41,26 +41,26 @@ export enum ObstacleType {
 // Obstacle properties
 export const OBSTACLE_PROPERTIES = {
   [ObstacleType.HORSE]: {
-    width: 100, // Increased from 80
-    height: 50, // Increased from 40
+    width: 130, // Further increased from 100
+    height: 65, // Further increased from 50
     speedMultiplier: 1.5,
     deadly: true
   },
   [ObstacleType.TUMBLEWEED]: {
-    width: 50, // Increased from 40
-    height: 50, // Increased from 40
+    width: 65, // Further increased from 50
+    height: 65, // Further increased from 50
     speedMultiplier: 2,
     deadly: true
   },
   [ObstacleType.TRAIN]: {
-    width: 160, // Increased from 140
-    height: 70, // Increased from 60
+    width: 200, // Further increased from 160
+    height: 90, // Further increased from 70
     speedMultiplier: 0.8,
     deadly: true
   },
   [ObstacleType.CACTUS]: {
-    width: 50, // Increased from 40
-    height: 70, // Increased from 60
+    width: 65, // Further increased from 50
+    height: 90, // Further increased from 70
     speedMultiplier: 0,
     deadly: true
   }
