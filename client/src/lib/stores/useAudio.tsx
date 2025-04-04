@@ -4,17 +4,23 @@ interface AudioState {
   backgroundMusic: HTMLAudioElement | null;
   hitSound: HTMLAudioElement | null;
   successSound: HTMLAudioElement | null;
+  gruntSound: HTMLAudioElement | null;
+  gameOverSound: HTMLAudioElement | null;
   isMuted: boolean;
   
   // Setter functions
   setBackgroundMusic: (music: HTMLAudioElement) => void;
   setHitSound: (sound: HTMLAudioElement) => void;
   setSuccessSound: (sound: HTMLAudioElement) => void;
+  setGruntSound: (sound: HTMLAudioElement) => void;
+  setGameOverSound: (sound: HTMLAudioElement) => void;
   
   // Control functions
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playGrunt: () => void;
+  playGameOver: () => void;
   playBackgroundMusic: () => void;
   stopBackgroundMusic: () => void;
 }
@@ -23,11 +29,15 @@ export const useAudio = create<AudioState>((set, get) => ({
   backgroundMusic: null,
   hitSound: null,
   successSound: null,
+  gruntSound: null,
+  gameOverSound: null,
   isMuted: true, // Start muted by default
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
   setHitSound: (sound) => set({ hitSound: sound }),
   setSuccessSound: (sound) => set({ successSound: sound }),
+  setGruntSound: (sound) => set({ gruntSound: sound }),
+  setGameOverSound: (sound) => set({ gameOverSound: sound }),
   
   toggleMute: () => {
     const { isMuted, backgroundMusic } = get();
@@ -102,6 +112,40 @@ export const useAudio = create<AudioState>((set, get) => ({
       successSound.currentTime = 0;
       successSound.play().catch(error => {
         console.error("Success sound play prevented:", error);
+      });
+    }
+  },
+  
+  playGrunt: () => {
+    const { gruntSound, isMuted } = get();
+    if (gruntSound) {
+      // If sound is muted, don't play anything
+      if (isMuted) {
+        console.log("Grunt sound skipped (muted)");
+        return;
+      }
+      
+      // Clone the sound to allow overlapping playback
+      const soundClone = gruntSound.cloneNode() as HTMLAudioElement;
+      soundClone.volume = 0.4;
+      soundClone.play().catch(error => {
+        console.error("Grunt sound play prevented:", error);
+      });
+    }
+  },
+  
+  playGameOver: () => {
+    const { gameOverSound, isMuted } = get();
+    if (gameOverSound) {
+      // If sound is muted, don't play anything
+      if (isMuted) {
+        console.log("Game over sound skipped (muted)");
+        return;
+      }
+      
+      gameOverSound.currentTime = 0;
+      gameOverSound.play().catch(error => {
+        console.error("Game over sound play prevented:", error);
       });
     }
   }

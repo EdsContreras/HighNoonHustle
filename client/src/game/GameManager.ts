@@ -441,9 +441,10 @@ export class GameManager {
       return;
     }
     
-    // Play hit sound
-    const { playHit } = useAudio.getState();
+    // Play hit sound and grunt sound
+    const { playHit, playGrunt } = useAudio.getState();
     playHit();
+    playGrunt(); // Play the grunt sound when player is hit
     
     this.lives--;
     this.callbacks.onLifeLost(this.lives);
@@ -460,6 +461,10 @@ export class GameManager {
   }
   
   private handleGameOver() {
+    // Play game over sound
+    const { playGameOver } = useAudio.getState();
+    playGameOver();
+    
     this.callbacks.onGameOver();
   }
   

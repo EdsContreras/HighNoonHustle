@@ -21,7 +21,15 @@ const Game = () => {
   const [lives, setLives] = useState(3);
   const [isInitialized, setIsInitialized] = useState(false);
   
-  const { setBackgroundMusic, setHitSound, setSuccessSound, toggleMute, backgroundMusic } = useAudio();
+  const { 
+    setBackgroundMusic, 
+    setHitSound, 
+    setSuccessSound,
+    setGruntSound,
+    setGameOverSound, 
+    toggleMute, 
+    backgroundMusic 
+  } = useAudio();
   
   // Update ref when gameState changes
   useEffect(() => {
@@ -42,17 +50,25 @@ const Game = () => {
 
     const successSfx = new Audio('/sounds/success.mp3');
     successSfx.volume = 0.5;
+    
+    const gruntSfx = new Audio('/sounds/grunt.mp3');
+    gruntSfx.volume = 0.4;
+    
+    const gameOverSfx = new Audio('/sounds/gameover.mp3');
+    gameOverSfx.volume = 0.5;
 
     setBackgroundMusic(bgMusic);
     setHitSound(hitSfx);
     setSuccessSound(successSfx);
+    setGruntSound(gruntSfx);
+    setGameOverSound(gameOverSfx);
 
     // Clean up
     return () => {
       bgMusic.pause();
       bgMusic.currentTime = 0;
     };
-  }, [setBackgroundMusic, setHitSound, setSuccessSound]);
+  }, [setBackgroundMusic, setHitSound, setSuccessSound, setGruntSound, setGameOverSound]);
 
   // Initialize p5.js sketch
   useEffect(() => {
