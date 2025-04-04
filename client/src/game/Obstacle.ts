@@ -179,14 +179,15 @@ export class Obstacle {
         // Position the smoke at specified position on the train
         // Note: in p5.js, coordinates are centered on the object (0,0 is center)
         // Using specific value of 40.0 as requested
-        const smokeStackX = 40.0; // Using exact value as requested
+        const smokeStackX = this.direction > 0 ? 40.0 : -40.0; // Adjust based on train direction
         
-        // Set vertical position to exactly -25.0 as requested
-        const smokeStackY = -25.0; // Using exact value as requested
+        // Set vertical position to exactly -35.0 as requested in the latest update
+        const smokeStackY = -35.0; // Updated vertical position
         
-        // Add the new smoke particles with initial velocity matching train direction
-        // This makes the smoke initially move with the train before drifting upward
-        const particle = new SmokeParticle(this.p, smokeStackX, smokeStackY);
+        // Create smoke particles at the train's position plus the smokestack offset
+        // This handles the train's position correctly in the game world
+        const particle = new SmokeParticle(this.p, this.x + smokeStackX, this.y + smokeStackY);
+        
         // Give an initial horizontal boost in the train's direction
         particle.vx += this.direction * 0.2; // Add some initial velocity in train's direction
         this.smokeParticles.push(particle);
@@ -197,8 +198,8 @@ export class Obstacle {
           const offsetY = this.p.random(-1, 1);
           const particle2 = new SmokeParticle(
             this.p, 
-            smokeStackX + offsetX, 
-            smokeStackY + offsetY
+            this.x + smokeStackX + offsetX, 
+            this.y + smokeStackY + offsetY
           );
           // Also give this particle a direction boost
           particle2.vx += this.direction * 0.15;
@@ -212,6 +213,15 @@ export class Obstacle {
   }
   
   public draw() {
+    // First, if this is a train, draw smoke particles in world space
+    if (this.type === ObstacleType.TRAIN && this.smokeParticles.length > 0) {
+      // Draw all smoke particles before the train (to appear behind it)
+      for (const particle of this.smokeParticles) {
+        particle.draw();
+      }
+    }
+  
+    // Now draw the obstacle itself
     this.p.push();
     this.p.translate(this.x, this.y);
     
@@ -302,14 +312,6 @@ export class Obstacle {
     
     // Reset tint after drawing
     this.p.noTint();
-    
-    // Draw smoke particles for train
-    if (this.type === ObstacleType.TRAIN && this.smokeParticles.length > 0) {
-      // Draw all smoke particles
-      for (const particle of this.smokeParticles) {
-        particle.draw();
-      }
-    }
     
     this.p.pop();
   }

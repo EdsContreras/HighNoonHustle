@@ -63,16 +63,29 @@ app.use((req, res, next) => {
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client
-  // Get port from environment variable or use 5000 as default
-  const port = process.env.PORT || 5000;
+  // Get port from environment variables, in priority order
+  // REPLIT_PORT is specific to Replit's environment
+  // PORT is a standard environment variable
+  // 5000 is our fallback
+  const port = process.env.REPLIT_PORT || process.env.PORT || 5000;
+  
+  // Log all available ports for debugging
+  console.log("Available port variables:", {
+    REPLIT_PORT: process.env.REPLIT_PORT,
+    PORT: process.env.PORT,
+    using: port
+  });
+  
+  // Configure server with more robust options for Replit environment
   server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
+    port: Number(port),
+    host: "0.0.0.0", // Listen on all network interfaces
+    reusePort: true, // Allow port reuse
   }, () => {
     log(`serving on port ${port}`);
     // Additional logging to help with debugging
     console.log(`Server running at http://0.0.0.0:${port}`);
     console.log(`Server environment: ${process.env.NODE_ENV}`);
+    console.log(`Replit domain: ${process.env.REPLIT_DOMAINS || "not available"}`);
   });
 })();
