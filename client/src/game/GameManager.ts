@@ -47,6 +47,7 @@ export class GameManager {
   private backgroundImage: p5.Image | null;
   private cameraOffsetY: number; // Camera offset for scrolling
   private targetCameraY: number; // Target camera position for smooth transitions
+  private lanePushDownOffset: number = 0; // Offset to push lanes down for money bags
   
   constructor(p: p5, callbacks: GameCallbacks) {
     this.p = p;
@@ -152,11 +153,16 @@ export class GameManager {
       this.player.handleResize(this.cellWidth, this.cellHeight);
     }
     
-    // Create lanes
+    // Create lanes with a top offset to make room for money bags
     const laneHeight = this.cellHeight;
+    // Add a top offset to push all lanes down and make room for money bags
+    // Define a variable that will be shared between lane and goal creation
+    this.lanePushDownOffset = laneHeight * 1.8; // Add almost 2 lanes of space at the top
+    
     for (let i = 0; i < levelConfig.lanes.length; i++) {
       const laneConfig = levelConfig.lanes[i];
-      const laneY = i * laneHeight + laneHeight / 2;
+      // Add the top offset to push everything down
+      const laneY = i * laneHeight + laneHeight / 2 + this.lanePushDownOffset;
       
       const lane = new Lane(
         this.p,
@@ -202,9 +208,13 @@ export class GameManager {
     const goalCount = levelConfig.goalCount;
     const goalWidth = this.p.width / goalCount;
     
+    // Use the same top offset for goals to align them with the first lane
+    // (Using the same variable from above)
+    
     for (let i = 0; i < goalCount; i++) {
       const goalX = i * goalWidth + goalWidth / 2;
-      const goalY = laneHeight / 2; // Top of the screen
+      // Position the goals at the top with our offset
+      const goalY = laneHeight / 2 + this.lanePushDownOffset * 0.3; // Just a bit down from absolute top
       
       // Pass the current level to the Goal constructor
       // Quadruple the height of the end zone (money bags)
