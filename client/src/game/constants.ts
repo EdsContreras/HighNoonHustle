@@ -5,11 +5,11 @@ export const BASE_WIDTH = 800;
 export const BASE_HEIGHT = 600;
 export const GRID_CELLS_X = 10;
 export const GRID_CELLS_Y = 30; // Extended for scrolling
-export const VISIBLE_CELLS_Y = 10; // How many cells visible at once (increased for better visibility)
+export const VISIBLE_CELLS_Y = 8; // Reduced to zoom in more (was 10)
 
 // Player
-export const PLAYER_WIDTH = 40;
-export const PLAYER_HEIGHT = 40;
+export const PLAYER_WIDTH = 65; // Increased from 40 for better visibility
+export const PLAYER_HEIGHT = 65; // Increased from 40 for better visibility
 export const PLAYER_MOVE_COOLDOWN = 100; // ms between moves (reduced for better responsiveness)
 export const PLAYER_MOVE_SPEED = 0.3; // movement speed (0.0-1.0, higher = faster)
 
@@ -21,8 +21,8 @@ export const POINTS_FOR_COIN = 500; // Increased 10x from original 50
 export const TIME_BONUS_FACTOR = 10;
 
 // Coin settings
-export const COIN_WIDTH = 30;
-export const COIN_HEIGHT = 30;
+export const COIN_WIDTH = 45; // Increased from 30 for better visibility
+export const COIN_HEIGHT = 45; // Increased from 30 for better visibility
 export const COINS_PER_LANE = 3; // Average number of coins per lane
 
 // Level design
@@ -41,26 +41,26 @@ export enum ObstacleType {
 // Obstacle properties
 export const OBSTACLE_PROPERTIES = {
   [ObstacleType.HORSE]: {
-    width: 80,
-    height: 40,
+    width: 130, // Increased from 80 for better visibility
+    height: 65, // Increased from 40 for better visibility
     speedMultiplier: 1.5,
     deadly: true
   },
   [ObstacleType.TUMBLEWEED]: {
-    width: 40,
-    height: 40,
+    width: 65, // Increased from 40 for better visibility
+    height: 65, // Increased from 40 for better visibility
     speedMultiplier: 2,
     deadly: true
   },
   [ObstacleType.TRAIN]: {
-    width: 140,
-    height: 60,
+    width: 200, // Increased from 140 for better visibility
+    height: 90, // Increased from 60 for better visibility
     speedMultiplier: 0.8,
     deadly: true
   },
   [ObstacleType.CACTUS]: {
-    width: 40,
-    height: 60,
+    width: 65, // Increased from 40 for better visibility
+    height: 90, // Increased from 60 for better visibility
     speedMultiplier: 0,
     deadly: true
   }
