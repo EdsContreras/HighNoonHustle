@@ -1,5 +1,6 @@
 import p5 from 'p5';
 import { loadImage } from './assets';
+import { POINTS_FOR_COIN } from './constants';
 
 // Firework particle class for the coin collection animation
 class FireworkParticle {
@@ -109,6 +110,7 @@ export class Coin {
   private fireworks: FireworkParticle[];
   private collectAnimation: boolean;
   private collectAnimationStart: number;
+  private scorePopup: { value: number, alpha: number, y: number } | null; // For score popup animation
   
   constructor(p: p5, x: number, y: number, width: number, height: number) {
     this.p = p;
@@ -122,6 +124,7 @@ export class Coin {
     this.fireworks = [];
     this.collectAnimation = false;
     this.collectAnimationStart = 0;
+    this.scorePopup = null; // Initialize score popup as null
     
     this.loadAssets();
   }
@@ -164,8 +167,34 @@ export class Coin {
   
   public draw(cameraOffsetY: number = 0) {
     // If coin is collected and we're not animating, don't draw anything
-    if (this.collected && !this.collectAnimation) {
+    if (this.collected && !this.collectAnimation && !this.scorePopup) {
       return;
+    }
+    
+    // Draw score popup if it exists
+    if (this.scorePopup) {
+      this.p.push();
+      
+      // Make the text float upward and fade out
+      this.scorePopup.y -= 2; // Move upward
+      this.scorePopup.alpha -= 5; // Fade out
+      
+      // Apply camera offset
+      const screenY = this.scorePopup.y - cameraOffsetY;
+      
+      // Draw the score text with current alpha
+      this.p.fill(255, 215, 0, this.scorePopup.alpha); // Gold color with alpha
+      this.p.textAlign(this.p.CENTER);
+      this.p.textSize(24); // Larger text
+      this.p.textStyle(this.p.BOLD);
+      this.p.text(`+${this.scorePopup.value}`, this.x, screenY);
+      
+      // Clean up the popup when it's fully transparent
+      if (this.scorePopup.alpha <= 0) {
+        this.scorePopup = null;
+      }
+      
+      this.p.pop();
     }
     
     // If we're showing the collection animation, update and draw the firework particles
@@ -185,7 +214,8 @@ export class Coin {
         console.log("Coin collection animation complete");
       }
       
-      return;
+      // Continue to draw the coin itself if it's in the animation state
+      if (this.collected) return;
     }
     
     // Only reach here if coin is not collected or animation is still running
@@ -278,6 +308,13 @@ export class Coin {
   public collect() {
     this.collected = true;
     this.createFireworkEffect(); // Create the firework effect when the coin is collected
+    
+    // Initialize score popup animation with the current coin value from constants
+    this.scorePopup = {
+      value: POINTS_FOR_COIN, // Using the imported constant
+      alpha: 255,  // Fully visible
+      y: this.y    // Start at coin's position
+    };
   }
   
   public getPosition() {
