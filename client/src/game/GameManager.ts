@@ -171,16 +171,37 @@ export class GameManager {
       
       this.lanes.push(lane);
       
-      // Add coins to safe zones (with some randomness)
+      // Add coins to safe zones (with some randomness, but better positioning)
       if (laneConfig.type === 'safe' && i > 0 && i < levelConfig.lanes.length - 1) {
         // Don't add coins to the start or end zones
-        const coinsForLane = Math.floor(Math.random() * (COINS_PER_LANE + 1)); // 0 to COINS_PER_LANE coins
+        // Guarantee at least 1 coin in most safe zones for better gameplay
+        const coinsForLane = Math.max(1, Math.floor(Math.random() * (COINS_PER_LANE + 1))); 
         
-        for (let j = 0; j < coinsForLane; j++) {
-          const x = Math.floor(Math.random() * GRID_CELLS_X) * this.cellWidth + this.cellWidth / 2;
+        // Create an array of possible positions to avoid overlapping coins
+        const possiblePositions = [];
+        for (let pos = 0; pos < GRID_CELLS_X; pos++) {
+          possiblePositions.push(pos);
+        }
+        
+        // Shuffle the array of positions for random placement
+        for (let k = possiblePositions.length - 1; k > 0; k--) {
+          const l = Math.floor(Math.random() * (k + 1));
+          [possiblePositions[k], possiblePositions[l]] = [possiblePositions[l], possiblePositions[k]];
+        }
+        
+        // Use the first 'coinsForLane' positions from the shuffled array
+        for (let j = 0; j < coinsForLane && j < possiblePositions.length; j++) {
+          const position = possiblePositions[j];
+          // Position coin in center of grid cell for better visibility
+          const x = position * this.cellWidth + this.cellWidth / 2;
+          // Add a small random offset to make it more natural
+          const xOffset = (Math.random() * 0.4 - 0.2) * this.cellWidth; // ±20% offset
           const y = laneY;
           
-          this.coins.push(new Coin(this.p, x, y, COIN_WIDTH, COIN_HEIGHT));
+          // Log coin placement for debugging
+          console.log(`Placing coin at (${x + xOffset}, ${y}) in lane ${i}`);
+          
+          this.coins.push(new Coin(this.p, x + xOffset, y, COIN_WIDTH, COIN_HEIGHT));
         }
       }
     }
@@ -257,17 +278,25 @@ export class GameManager {
       }
     }
     
-    // Check for coin collisions
-    if (this.player && !this.player.isMoving()) {
+    // Check for coin collisions - we now check even if the player is moving
+    // This helps catch coins that the player might pass through during movement
+    if (this.player) {
       const playerRect = this.player.getRect();
+      const playerPos = this.player.getGridPosition();
+      
+      // Debug coin visibility occasionally
+      if (this.p.frameCount % 300 === 0) {
+        const uncollectedCoins = this.coins.filter(coin => !coin.isCollected()).length;
+        console.log(`Debug: ${uncollectedCoins} uncollected coins remaining on the level`);
+      }
       
       for (let i = this.coins.length - 1; i >= 0; i--) {
         const coin = this.coins[i];
         
         // Only check collision if coin hasn't been collected yet
         if (!coin.isCollected()) {
-          // Note: We pass the player's rect coordinates exactly as they are
-          // since we've fixed the Coin.contains() method to handle rect coordinates correctly
+          // The improved Coin.contains method now handles expanding the hitbox
+          // and checking centers, so it's more reliable for collection
           if (coin.contains(
             playerRect.x, 
             playerRect.y, 
