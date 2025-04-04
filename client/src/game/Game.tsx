@@ -68,9 +68,11 @@ const Game = () => {
           setGameState('gameOver');
         },
         onLevelComplete: (levelScore: number) => {
-          console.log("Level complete!");
-          setScore(prevScore => prevScore + levelScore);
-          setGameState('levelComplete');
+          // In continuous mode, we never stop the game for level completion
+          // We just update the level and continue playing
+          console.log("Level complete callback - in continuous mode this just updates the score/level");
+          setCurrentLevel(prevLevel => prevLevel + 1);
+          setScore(levelScore); // Score is now managed by the GameManager
         },
         onLifeLost: (remainingLives: number) => {
           console.log("Life lost, remaining:", remainingLives);

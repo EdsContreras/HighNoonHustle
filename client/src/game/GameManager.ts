@@ -3,25 +3,26 @@ import { Player } from './Player';
 import { Lane } from './Lane';
 import { Goal } from './Goal';
 import { Coin } from './Coin';
+import { loadImage } from './assets';
 import { 
-  GRID_CELLS_X,
+  COLORS, 
+  GRID_CELLS_X, 
   GRID_CELLS_Y,
   VISIBLE_CELLS_Y,
-  STARTING_LIVES,
+  KEYS,
   POINTS_FOR_CROSSING,
   POINTS_FOR_GOAL,
   POINTS_FOR_COIN,
+  STARTING_LIVES,
   COIN_WIDTH,
   COIN_HEIGHT,
   COINS_PER_LANE,
-  TIME_BONUS_FACTOR,
-  KEYS,
-  LEVELS,
-  COLORS
+  ObstacleType,
+  LEVELS
 } from './constants';
 import { useAudio } from '../lib/stores/useAudio';
-import { loadImage } from './assets';
 
+// Interface for callbacks from game to UI
 interface GameCallbacks {
   onGameOver: () => void;
   onLevelComplete: (score: number) => void;
@@ -40,9 +41,9 @@ export class GameManager {
   private cellHeight: number;
   private lives: number;
   private score: number;
-  private level: number;
-  private levelStartTime: number;
-  private levelTimeLimit: number;
+  private level: number;  // Used to track difficulty now, not actual levels
+  private gameStartTime: number;  // Track overall game time
+  private difficulty: number;    // Current difficulty factor (increases over time)
   private backgroundImage: p5.Image | null;
   private cameraOffsetY: number; // Camera offset for scrolling
   private targetCameraY: number; // Target camera position for smooth transitions
@@ -59,8 +60,8 @@ export class GameManager {
     this.lives = STARTING_LIVES;
     this.score = 0;
     this.level = 1;
-    this.levelStartTime = 0;
-    this.levelTimeLimit = 0;
+    this.difficulty = 1;
+    this.gameStartTime = 0;
     this.backgroundImage = null;
     this.cameraOffsetY = 0;
     this.targetCameraY = 0; // Initialize target camera position
@@ -93,11 +94,13 @@ export class GameManager {
     this.cellHeight = (this.p.height / GRID_CELLS_Y) * 1.8;
   }
   
-  public startLevel(level: number) {
+  public startLevel(level: number = 1) {
+    // Reset game variables
+    this.lives = STARTING_LIVES;
+    this.score = 0;
     this.level = level;
-    
-    // Get level configuration
-    const levelConfig = LEVELS[level] || LEVELS[1]; // Fallback to level 1 if config not found
+    this.difficulty = level;
+    this.gameStartTime = this.p.millis();
     
     // Reset game state
     this.lanes = [];
@@ -105,8 +108,6 @@ export class GameManager {
     this.coins = [];
     this.cameraOffsetY = 0; // Reset camera position
     this.targetCameraY = 0; // Reset target camera position
-    this.levelStartTime = this.p.millis();
-    this.levelTimeLimit = levelConfig.timeLimit * 1000; // Convert to milliseconds
     
     // Calculate grid
     this.calculateGrid();
@@ -120,11 +121,28 @@ export class GameManager {
       this.player.handleResize(this.cellWidth, this.cellHeight);
     }
     
+    // Generate the game content based on the current difficulty
+    this.generateGameContent();
+  }
+  
+  // Generate game content (lanes, obstacles, coins, goals) based on current difficulty
+  private generateGameContent() {
+    // Use a template from the most difficult level design
+    const templateIndex = Math.min(3, Math.floor(this.difficulty));
+    const levelConfig = LEVELS[templateIndex] || LEVELS[1];
+    
     // Create lanes
     const laneHeight = this.cellHeight;
     for (let i = 0; i < levelConfig.lanes.length; i++) {
-      const laneConfig = levelConfig.lanes[i];
+      let laneConfig = {...levelConfig.lanes[i]};
       const laneY = i * laneHeight + laneHeight / 2;
+      
+      // Increase obstacle frequency based on difficulty
+      if (laneConfig.obstacleFrequency) {
+        // Gradually increase frequency based on difficulty (max 100% increase)
+        const difficultyFactor = Math.min(2, 1 + (this.difficulty - 1) * 0.2);
+        laneConfig.obstacleFrequency *= difficultyFactor;
+      }
       
       const lane = new Lane(
         this.p,
@@ -133,7 +151,7 @@ export class GameManager {
         laneConfig.direction === 'right' ? 1 : -1,
         laneConfig.obstacleType,
         laneConfig.obstacleFrequency || 0,
-        this.level,
+        Math.floor(this.difficulty), // Use difficulty as level for speed calculation
         this.cellHeight
       );
       
@@ -142,7 +160,9 @@ export class GameManager {
       // Add coins to safe zones (with some randomness)
       if (laneConfig.type === 'safe' && i > 0 && i < levelConfig.lanes.length - 1) {
         // Don't add coins to the start or end zones
-        const coinsForLane = Math.floor(Math.random() * (COINS_PER_LANE + 1)); // 0 to COINS_PER_LANE coins
+        // More coins at higher difficulties (up to 2x the base amount)
+        const maxCoins = Math.floor(COINS_PER_LANE * Math.min(2, 1 + (this.difficulty - 1) * 0.2));
+        const coinsForLane = Math.floor(Math.random() * (maxCoins + 1));
         
         for (let j = 0; j < coinsForLane; j++) {
           const x = Math.floor(Math.random() * GRID_CELLS_X) * this.cellWidth + this.cellWidth / 2;
@@ -153,8 +173,9 @@ export class GameManager {
       }
     }
     
-    // Create goals
-    const goalCount = levelConfig.goalCount;
+    // Create goals - number of goals depends on difficulty
+    const baseGoalCount = 3;
+    const goalCount = Math.min(5, baseGoalCount + Math.floor((this.difficulty - 1) / 2));
     const goalWidth = this.p.width / goalCount;
     
     for (let i = 0; i < goalCount; i++) {
@@ -163,6 +184,8 @@ export class GameManager {
       
       this.goals.push(new Goal(this.p, goalX, goalY, goalWidth * 0.8, laneHeight * 0.8));
     }
+    
+    console.log(`Generated game content with difficulty ${this.difficulty}, ${this.goals.length} goals`);
   }
   
   // Camera smoothing factor controls how quickly the camera follows the player
@@ -272,24 +295,27 @@ export class GameManager {
         }
       }
       
-      if (reachedGoal) {
-        // Reset player position to starting position (45% from bottom)
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
-      } else if (!this.player.isMoving()) {
-        // Player reached top but not in a goal, reset position to starting position
+      // Always reset player when they reach top of screen
+      if (this.player) {
         this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
       }
     }
     
-    // Check if level is complete (all goals reached)
+    // Check if all goals reached - increase difficulty and regenerate level
     if (this.goals.every(goal => goal.isReached())) {
-      this.handleLevelComplete();
+      this.handleAllGoalsReached();
     }
     
-    // Check if time ran out
-    const elapsedTime = this.p.millis() - this.levelStartTime;
-    if (elapsedTime > this.levelTimeLimit) {
-      this.handleGameOver();
+    // Gradually increase difficulty over time
+    const elapsedTime = this.p.millis() - this.gameStartTime;
+    // Increase difficulty every 30 seconds by 0.5, starting after first minute
+    if (elapsedTime > 60000) { // After first minute
+      const newDifficulty = 1 + Math.floor((elapsedTime - 60000) / 30000) * 0.5;
+      
+      if (newDifficulty > this.difficulty) {
+        console.log(`Difficulty increased to ${newDifficulty} based on time`);
+        this.difficulty = newDifficulty;
+      }
     }
   }
   
@@ -377,17 +403,41 @@ export class GameManager {
     this.callbacks.onGameOver();
   }
   
-  private handleLevelComplete() {
-    // Calculate time bonus
-    const elapsedTime = this.p.millis() - this.levelStartTime;
-    const timeRemaining = Math.max(0, this.levelTimeLimit - elapsedTime);
-    const timeBonus = Math.floor(timeRemaining / 1000) * TIME_BONUS_FACTOR;
+  // Handle when all goals are reached in continuous mode
+  private handleAllGoalsReached() {
+    // Increase difficulty
+    this.difficulty += 0.5;
+    this.level = Math.floor(this.difficulty);
     
-    this.score += timeBonus;
+    // Add bonus points for completing all goals
+    const bonus = POINTS_FOR_GOAL * this.goals.length;
+    this.score += bonus;
     this.callbacks.updateScore(this.score);
     
-    // Trigger level complete
-    this.callbacks.onLevelComplete(this.score);
+    console.log(`All goals reached! Difficulty increased to ${this.difficulty}. Bonus: ${bonus} points.`);
+    
+    // Generate new game content with higher difficulty
+    this.generateGameContent();
+    
+    // Play success sound
+    const { playSuccess } = useAudio.getState();
+    playSuccess();
+  }
+  
+  // This is a legacy method that might still be called by the Game component
+  private handleLevelComplete() {
+    // This is just here for compatibility, we're using handleAllGoalsReached instead
+    // We shouldn't reach here, but just in case:
+    this.difficulty += 0.5;
+    this.score += POINTS_FOR_GOAL;
+    this.callbacks.updateScore(this.score);
+    
+    console.log("Legacy level complete called - shouldn't happen in continuous mode");
+    
+    // Generate new game content with higher difficulty
+    this.generateGameContent();
+    
+    // Don't trigger onLevelComplete callback as we're in continuous mode
   }
   
   public handleResize() {

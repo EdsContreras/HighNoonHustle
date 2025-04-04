@@ -27,9 +27,17 @@ class FireworkParticle {
     // Start fully opaque and fade out
     this.alpha = 255;
     
-    // Bright yellow color variations for more vibrant fireworks
-    const colorVariation = p.random(40);
-    this.color = p.color(255, 255 - colorVariation, 0);
+    // Bright gold/yellow color variations for more vibrant fireworks
+    const colorVariation = p.random(30);
+    const brightGold = p.random() > 0.3;
+    
+    if (brightGold) {
+      // Pure bright yellow for most particles
+      this.color = p.color(255, 255 - colorVariation, 0);
+    } else {
+      // Some particles with a more orange/gold tint for variation
+      this.color = p.color(255, 200 - colorVariation, 0);
+    }
     
     // Random size for the particle
     this.size = p.random(3, 6);
@@ -74,9 +82,17 @@ class FireworkParticle {
     this.p.push();
     this.p.noStroke();
     
-    // Draw trail
+    // Draw trail with glowing effect
     for (const point of this.trail) {
       const screenY = point.y - cameraOffsetY;
+      
+      // Outer glow
+      const glowColor = this.p.color(255, 255, 0, point.alpha * 0.2);
+      this.p.fill(glowColor);
+      const glowSize = this.size * 1.2;
+      this.p.ellipse(point.x, screenY, glowSize, glowSize);
+      
+      // Inner trail
       const trailColor = this.p.color(255, 255, 0, point.alpha * 0.5);
       this.p.fill(trailColor);
       const trailSize = this.size * 0.7;
@@ -132,7 +148,7 @@ export class Coin {
   
   private createFireworkEffect() {
     // Create more particles for a more impressive firework effect
-    const particleCount = 50; // Doubled for more dramatic effect
+    const particleCount = 60; // Increased for even more dramatic effect
     
     // Create the main explosion particles
     for (let i = 0; i < particleCount; i++) {
@@ -140,12 +156,29 @@ export class Coin {
     }
     
     // Add a few larger "spark" particles
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       const spark = new FireworkParticle(this.p, this.x, this.y);
       // Override with larger, slower-moving particles
-      spark.size = this.p.random(6, 10);
+      spark.size = this.p.random(6, 12);
       spark.vx *= 0.7;
       spark.vy *= 0.7;
+      this.fireworks.push(spark);
+    }
+    
+    // Add some special brighter particles in a circular pattern
+    const circleParticleCount = 16;
+    for (let i = 0; i < circleParticleCount; i++) {
+      const angle = (i / circleParticleCount) * this.p.TWO_PI;
+      const spark = new FireworkParticle(this.p, this.x, this.y);
+      
+      // Set velocity directly based on angle
+      const speed = this.p.random(4, 6); // Faster to expand quickly
+      spark.vx = this.p.cos(angle) * speed;
+      spark.vy = this.p.sin(angle) * speed;
+      
+      // Slightly larger size
+      spark.size = this.p.random(5, 8);
+      
       this.fireworks.push(spark);
     }
     
