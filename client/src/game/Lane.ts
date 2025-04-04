@@ -184,32 +184,37 @@ export class Lane {
   }
   
   private drawTrainTracks(width: number) {
-    const trackHeight = this.height * 0.8; // Tracks take up 80% of lane height
+    // Center everything in the lane
     const y = this.y;
-    const trackY = y - trackHeight * 0.15; // Slightly above center
     
-    // Draw wooden sleepers (ties)
-    this.p.fill(139, 69, 19); // Brown color for wooden sleepers
-    const sleeperWidth = 20;
-    const sleeperHeight = 5;
-    const sleeperSpacing = 30; // Space between sleepers
-    
-    for (let x = 0; x < width; x += sleeperSpacing) {
-      this.p.rect(x, trackY, sleeperWidth, sleeperHeight);
-    }
-    
-    // Draw the two rails
+    // Draw the two rails first (so sleepers appear on top)
     this.p.strokeWeight(3);
-    this.p.stroke(100, 100, 100); // Dark gray for rails
+    this.p.stroke(80, 80, 80); // Darker gray for rails
+    
+    // Rail spacing - distance between the two rails
+    const railSpacing = this.height * 0.4; // 40% of lane height
     
     // Top rail
-    const railOffset = 10;
-    this.p.line(0, trackY - railOffset, width, trackY - railOffset);
+    this.p.line(0, y - railSpacing/2, width, y - railSpacing/2);
     
     // Bottom rail
-    this.p.line(0, trackY + railOffset, width, trackY + railOffset);
+    this.p.line(0, y + railSpacing/2, width, y + railSpacing/2);
     
-    // Reset stroke
+    // Draw wooden sleepers (ties) perpendicular to the rails
+    this.p.fill(120, 60, 20); // Rich brown color for wooden sleepers
+    const sleeperWidth = railSpacing + 10; // Slightly wider than rail spacing
+    const sleeperHeight = 8; // Thicker sleepers
+    const sleeperSpacing = 30; // Space between sleepers
+    
+    this.p.rectMode(this.p.CENTER); // Draw from center
+    
+    for (let x = 0; x < width; x += sleeperSpacing) {
+      // Draw each sleeper centered on the track and perpendicular to rails
+      this.p.rect(x, y, sleeperHeight, sleeperWidth);
+    }
+    
+    // Reset drawing settings
+    this.p.rectMode(this.p.CORNER); // Reset to default
     this.p.noStroke();
   }
   
