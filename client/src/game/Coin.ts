@@ -220,40 +220,35 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // Increase hitbox size substantially for easier collection
-    const hitboxIncrease = 1.5; // 50% larger hitbox
-    const coinHitboxWidth = this.width * hitboxIncrease;
-    const coinHitboxHeight = this.height * hitboxIncrease;
+    // Simple AABB collision detection
+    // Note: Unlike earlier code, playerX/Y are now the top-left corner of the player's rect
+    // not the center point
+    const coinLeft = this.x - this.width / 2;
+    const coinRight = this.x + this.width / 2;
+    const coinTop = this.y - this.height / 2;
+    const coinBottom = this.y + this.height / 2;
     
-    // Calculate centers
-    const coinCenterX = this.x;
-    const coinCenterY = this.y;
-    const playerCenterX = playerX + playerWidth / 2;
-    const playerCenterY = playerY + playerHeight / 2;
+    // Player rect is already top-left based so we don't need to adjust it
+    const playerRight = playerX + playerWidth;
+    const playerBottom = playerY + playerHeight;
     
-    // Calculate distance between centers
-    const distanceX = Math.abs(coinCenterX - playerCenterX);
-    const distanceY = Math.abs(coinCenterY - playerCenterY);
+    // Log the collision check for debugging
+    const isColliding = !(
+      playerX > coinRight || 
+      playerRight < coinLeft || 
+      playerY > coinBottom || 
+      playerBottom < coinTop
+    );
     
-    // Use a more generous radius-based detection
-    const collectionRadius = (coinHitboxWidth + playerWidth) / 2;
-    const shouldCollect = distanceX < collectionRadius && distanceY < collectionRadius;
-    
-    // Either standard collision or centers are very close
-    const shouldCollect = isColliding || centersClose;
-    
-    if (shouldCollect) {
+    if (isColliding) {
       console.log("Coin collision detected!", {
         coin: { x: this.x, y: this.y, width: this.width, height: this.height },
-        expanded: { width: coinHitboxWidth, height: coinHitboxHeight },
         coinRect: { left: coinLeft, right: coinRight, top: coinTop, bottom: coinBottom },
-        playerRect: { left: playerX, right: playerRight, top: playerY, bottom: playerBottom },
-        centersClose: centersClose,
-        distance: { x: distanceX, y: distanceY }
+        playerRect: { left: playerX, right: playerRight, top: playerY, bottom: playerBottom }
       });
     }
     
-    return shouldCollect;
+    return isColliding;
   }
   
   public isCollected(): boolean {
