@@ -173,10 +173,12 @@ export class Obstacle {
         // Looking at the image, the smokestack is almost at the very front of the train
         // and positioned at the top of the train's body
         
-        // Based on the screenshot, the black smokestack is at the very front of the train
+        // Looking at the new screenshot, the smokestack is actually at the back of the train
         // We need to position this perfectly based on the train image
-        const frontOffset = this.width * 0.45; // 45% from center puts it at the very front edge
-        const smokeStackX = this.direction > 0 ? -frontOffset : frontOffset;
+        // For a rightward moving train, the smokestack is at the back (right side)
+        // For a leftward moving train, the smokestack is also at the back (left side)
+        const backOffset = this.width * 0.45; // 45% from center puts it at the back edge
+        const smokeStackX = this.direction > 0 ? backOffset : -backOffset;
         
         // Vertical position: looking at the screenshot, the smokestack is at the top of the train
         // But not quite centered - it's a bit lower than the very top edge
