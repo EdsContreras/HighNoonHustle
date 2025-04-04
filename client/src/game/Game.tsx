@@ -168,12 +168,19 @@ const Game = () => {
           // Check relevant keys
           [KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D].forEach(keyCode => {
             if (keyStates[keyCode]) {
-              // Handle held keys with a small delay
+              // Use the full cooldown for held keys to prevent movement queuing issues
               const now = p.millis();
-              if (!lastKeyHandled[keyCode] || now - lastKeyHandled[keyCode] > PLAYER_MOVE_COOLDOWN/2) {
-                gameManager.handleKeyPress(keyCode);
-                lastKeyHandled[keyCode] = now;
+              if (!lastKeyHandled[keyCode] || now - lastKeyHandled[keyCode] > PLAYER_MOVE_COOLDOWN) {
+                // Only attempt to move if game manager accepts the movement
+                const moved = gameManager.handleKeyPress(keyCode);
+                if (moved) {
+                  lastKeyHandled[keyCode] = now;
+                }
               }
+            } else {
+              // Reset the last handled time when key is released
+              // This helps with responsive movement after releasing and pressing again
+              delete lastKeyHandled[keyCode];
             }
           });
         }

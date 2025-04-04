@@ -82,6 +82,14 @@ export class Player {
       this.x += distX * PLAYER_MOVE_SPEED;
       this.y += distY * PLAYER_MOVE_SPEED;
       this.moving = true;
+      
+      // If we're very close to the target (90% of the way there), snap to it
+      // This helps prevent tiny movements that could make the character appear to stutter
+      if (Math.abs(distX) < 0.1 && Math.abs(distY) < 0.1) {
+        this.x = this.targetX;
+        this.y = this.targetY;
+        this.moving = false;
+      }
     } else {
       // Snap to target position when very close
       this.x = this.targetX;
@@ -158,9 +166,8 @@ export class Player {
   public handleKeyPress(keyCode: number) {
     const currentTime = this.p.millis();
 
-    // Only check for cooldown, no longer block movement if already moving
-    // This allows more responsive queueing of the next move
-    if (currentTime - this.lastMoveTime < PLAYER_MOVE_COOLDOWN) {
+    // Check for cooldown AND if player is already moving
+    if (currentTime - this.lastMoveTime < PLAYER_MOVE_COOLDOWN || this.moving) {
       return false;
     }
 
@@ -168,11 +175,10 @@ export class Player {
     const oldX = this.targetX;
     const oldY = this.targetY;
 
-    // If player is already more than one cell away from target, don't queue another move
-    // This prevents player from queueing too many moves and losing control
-    const distToTarget =
-      Math.abs(this.x - this.targetX) + Math.abs(this.y - this.targetY);
-    if (distToTarget > 1.0) {
+    // Prevent any movement if the player is not exactly at their target position
+    // This ensures we only process movement commands when the player is ready to move
+    const distanceToTarget = Math.abs(this.x - this.targetX) + Math.abs(this.y - this.targetY);
+    if (distanceToTarget > 0.01) {
       return false;
     }
 
