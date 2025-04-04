@@ -170,12 +170,47 @@ export class Lane {
     }
     this.p.rect(0, this.y - this.height / 2, width, this.height);
     
+    // Draw train tracks for lanes with trains
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      this.drawTrainTracks(width);
+    }
+    
     // Draw obstacles
     for (const obstacle of this.obstacles) {
       obstacle.draw();
     }
     
     this.p.pop();
+  }
+  
+  private drawTrainTracks(width: number) {
+    const trackHeight = this.height * 0.8; // Tracks take up 80% of lane height
+    const y = this.y;
+    const trackY = y - trackHeight * 0.15; // Slightly above center
+    
+    // Draw wooden sleepers (ties)
+    this.p.fill(139, 69, 19); // Brown color for wooden sleepers
+    const sleeperWidth = 20;
+    const sleeperHeight = 5;
+    const sleeperSpacing = 30; // Space between sleepers
+    
+    for (let x = 0; x < width; x += sleeperSpacing) {
+      this.p.rect(x, trackY, sleeperWidth, sleeperHeight);
+    }
+    
+    // Draw the two rails
+    this.p.strokeWeight(3);
+    this.p.stroke(100, 100, 100); // Dark gray for rails
+    
+    // Top rail
+    const railOffset = 10;
+    this.p.line(0, trackY - railOffset, width, trackY - railOffset);
+    
+    // Bottom rail
+    this.p.line(0, trackY + railOffset, width, trackY + railOffset);
+    
+    // Reset stroke
+    this.p.noStroke();
   }
   
   public checkCollisions(playerRect: { x: number; y: number; width: number; height: number }) {
