@@ -8,7 +8,6 @@ export class Goal {
   private width: number;
   private height: number;
   private reached: boolean;
-  private allCoinsCollected: boolean;
   
   constructor(p: p5, x: number, y: number, width: number, height: number) {
     this.p = p;
@@ -17,7 +16,6 @@ export class Goal {
     this.width = width;
     this.height = height;
     this.reached = false;
-    this.allCoinsCollected = false;
   }
   
   public draw() {
@@ -31,12 +29,8 @@ export class Goal {
     if (this.reached) {
       // Reached goals have a different color
       this.p.fill(150, 200, 150);
-    } else if (this.allCoinsCollected) {
-      // All coins collected but goal not reached yet - bright green
-      this.p.fill(80, 220, 80, 220);
     } else {
-      // Not all coins collected - show as red/locked
-      this.p.fill(220, 80, 80, 180);
+      this.p.fill(COLORS.GOAL);
     }
     
     // Draw the goal
@@ -46,27 +40,6 @@ export class Goal {
     if (this.reached) {
       this.p.fill(100, 150, 100);
       this.p.ellipse(this.x, this.y, this.width * 0.6, this.height * 0.6);
-    } else {
-      // Draw a visual cue about the goal state
-      if (this.allCoinsCollected) {
-        // Draw a "ready" symbol (checkmark)
-        this.p.stroke(255);
-        this.p.strokeWeight(3);
-        this.p.noFill();
-        this.p.beginShape();
-        this.p.vertex(this.x - this.width * 0.2, this.y);
-        this.p.vertex(this.x, this.y + this.height * 0.2);
-        this.p.vertex(this.x + this.width * 0.2, this.y - this.height * 0.2);
-        this.p.endShape();
-      } else {
-        // Draw a "locked" symbol (X)
-        this.p.stroke(255);
-        this.p.strokeWeight(3);
-        this.p.line(this.x - this.width * 0.2, this.y - this.height * 0.2, 
-                   this.x + this.width * 0.2, this.y + this.height * 0.2);
-        this.p.line(this.x + this.width * 0.2, this.y - this.height * 0.2, 
-                   this.x - this.width * 0.2, this.y + this.height * 0.2);
-      }
     }
     
     this.p.pop();
@@ -82,13 +55,5 @@ export class Goal {
   
   public setReached(reached: boolean) {
     this.reached = reached;
-  }
-  
-  public setAllCoinsCollected(collected: boolean) {
-    this.allCoinsCollected = collected;
-  }
-  
-  public areAllCoinsCollected(): boolean {
-    return this.allCoinsCollected;
   }
 }

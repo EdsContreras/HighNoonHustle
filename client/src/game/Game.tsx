@@ -18,8 +18,6 @@ const Game = () => {
   const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [collectedCoins, setCollectedCoins] = useState(0);
-  const [requiredCoins, setRequiredCoins] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   
   const { setBackgroundMusic, setHitSound, setSuccessSound, toggleMute, backgroundMusic } = useAudio();
@@ -128,10 +126,6 @@ const Game = () => {
           // Update and draw game
           gameManager.update();
           gameManager.draw();
-          
-          // Update coin collection info
-          setCollectedCoins(gameManager.getCollectedCoinsCount());
-          setRequiredCoins(gameManager.getRequiredCoinsCount());
         }
       };
 
@@ -275,13 +269,7 @@ const Game = () => {
         )}
         
         {gameState === 'playing' && (
-          <HUD 
-            score={score} 
-            level={currentLevel} 
-            lives={lives}
-            collectedCoins={collectedCoins}
-            requiredCoins={requiredCoins}
-          />
+          <HUD score={score} level={currentLevel} lives={lives} />
         )}
       </div>
     </div>
