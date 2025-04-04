@@ -220,19 +220,22 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // Simple AABB collision detection
-    // Note: Unlike earlier code, playerX/Y are now the top-left corner of the player's rect
-    // not the center point
-    const coinLeft = this.x - this.width / 2;
-    const coinRight = this.x + this.width / 2;
-    const coinTop = this.y - this.height / 2;
-    const coinBottom = this.y + this.height / 2;
+    // Expand the coin hitbox slightly to make it more forgiving (110% of original size)
+    const expandFactor = 1.1;
+    const expandedWidth = this.width * expandFactor;
+    const expandedHeight = this.height * expandFactor;
+    
+    // Calculate coin boundaries with slightly expanded hitbox
+    const coinLeft = this.x - expandedWidth / 2;
+    const coinRight = this.x + expandedWidth / 2;
+    const coinTop = this.y - expandedHeight / 2;
+    const coinBottom = this.y + expandedHeight / 2;
     
     // Player rect is already top-left based so we don't need to adjust it
     const playerRight = playerX + playerWidth;
     const playerBottom = playerY + playerHeight;
     
-    // Log the collision check for debugging
+    // Check AABB collision with expanded hitbox
     const isColliding = !(
       playerX > coinRight || 
       playerRight < coinLeft || 
@@ -240,15 +243,32 @@ export class Coin {
       playerBottom < coinTop
     );
     
-    if (isColliding) {
+    // Alternative collision check: centers are close enough
+    const playerCenterX = playerX + playerWidth / 2;
+    const playerCenterY = playerY + playerHeight / 2;
+    const distanceX = Math.abs(playerCenterX - this.x);
+    const distanceY = Math.abs(playerCenterY - this.y);
+    
+    // Consider centers close if they're within 75% of sum of half-widths/heights
+    const centersClose = 
+      distanceX < (expandedWidth + playerWidth) * 0.375 && 
+      distanceY < (expandedHeight + playerHeight) * 0.375;
+    
+    // Coins are collected if either test passes
+    const shouldCollect = isColliding || centersClose;
+    
+    if (shouldCollect) {
       console.log("Coin collision detected!", {
         coin: { x: this.x, y: this.y, width: this.width, height: this.height },
+        expanded: { width: expandedWidth, height: expandedHeight },
         coinRect: { left: coinLeft, right: coinRight, top: coinTop, bottom: coinBottom },
-        playerRect: { left: playerX, right: playerRight, top: playerY, bottom: playerBottom }
+        playerRect: { left: playerX, right: playerRight, top: playerY, bottom: playerBottom },
+        centersClose: centersClose,
+        distance: { x: distanceX, y: distanceY }
       });
     }
     
-    return isColliding;
+    return shouldCollect;
   }
   
   public isCollected(): boolean {

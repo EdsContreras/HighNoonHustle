@@ -171,16 +171,29 @@ export class GameManager {
       
       this.lanes.push(lane);
       
-      // Add coins to safe zones (with some randomness)
+      // Add coins to safe zones (with some randomness but better distribution)
       if (laneConfig.type === 'safe' && i > 0 && i < levelConfig.lanes.length - 1) {
         // Don't add coins to the start or end zones
         const coinsForLane = Math.floor(Math.random() * (COINS_PER_LANE + 1)); // 0 to COINS_PER_LANE coins
         
-        for (let j = 0; j < coinsForLane; j++) {
-          const x = Math.floor(Math.random() * GRID_CELLS_X) * this.cellWidth + this.cellWidth / 2;
-          const y = laneY;
+        if (coinsForLane > 0) {
+          // Create an array of potential positions across the grid
+          const potentialPositions = [];
+          for (let gridX = 0; gridX < GRID_CELLS_X; gridX++) {
+            potentialPositions.push({
+              x: gridX * this.cellWidth + this.cellWidth / 2,
+              y: laneY
+            });
+          }
           
-          this.coins.push(new Coin(this.p, x, y, COIN_WIDTH, COIN_HEIGHT));
+          // Shuffle the positions to randomize which ones get coins
+          this.shuffleArray(potentialPositions);
+          
+          // Place coins at the randomized positions, but only up to the coinsForLane count
+          for (let j = 0; j < Math.min(coinsForLane, potentialPositions.length); j++) {
+            const position = potentialPositions[j];
+            this.coins.push(new Coin(this.p, position.x, position.y, COIN_WIDTH, COIN_HEIGHT));
+          }
         }
       }
     }
@@ -229,6 +242,14 @@ export class GameManager {
       
       // Apply smooth transition
       this.cameraOffsetY += delta * smoothingFactor;
+      
+      // Output debugging info about coins every 60 frames (approximately once per second)
+      if (this.p.frameCount % 60 === 0) {
+        const uncollectedCoins = this.coins.filter(coin => !coin.isCollected()).length;
+        if (uncollectedCoins > 0) {
+          console.log(`Debug: ${uncollectedCoins} uncollected coins remaining on the level`);
+        }
+      }
     }
     
     // Update lanes and check collisions
@@ -471,5 +492,14 @@ export class GameManager {
     for (const coin of this.coins) {
       coin.handleResize(this.cellWidth, this.cellHeight);
     }
+  }
+  
+  // Helper method to shuffle an array (Fisher-Yates algorithm)
+  private shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
   }
 }
