@@ -11,16 +11,19 @@ export class Goal {
   private reached: boolean;
   private image: p5.Image | null;
   private animationOffset: number;
+  private level: number; // Store the level for size adjustment
   
-  constructor(p: p5, x: number, y: number, width: number, height: number) {
+  constructor(p: p5, x: number, y: number, width: number, height: number, level: number = 1) {
     this.p = p;
     this.x = x;
     this.y = y;
+    // Store the original width and height
     this.width = width;
     this.height = height;
     this.reached = false;
     this.image = null;
     this.animationOffset = p.random(0, 2 * p.PI); // Random starting point for animation
+    this.level = level; // Save the current level
     
     this.loadAssets();
   }
@@ -36,6 +39,14 @@ export class Goal {
   public draw() {
     this.p.push();
     
+    // Calculate actual display size based on level
+    // Apply 30% reduction only for Level 1
+    const sizeMultiplier = this.level === 1 ? 0.7 : 1.0; // 70% of original size for level 1
+    
+    // Calculate the display width and height
+    const displayWidth = this.width * sizeMultiplier;
+    const displayHeight = this.height * sizeMultiplier;
+    
     if (this.image) {
       // Draw with money bag image
       this.p.imageMode(this.p.CENTER);
@@ -50,11 +61,16 @@ export class Goal {
         // Draw a subtle glow background
         this.p.noStroke();
         this.p.fill(255, 215, 0, 100); // Golden glow
-        this.p.ellipse(this.x, this.y + yOffset, this.width * 1.2, this.height * 1.2);
+        this.p.ellipse(this.x, this.y + yOffset, displayWidth * 1.2, displayHeight * 1.2);
       }
       
-      // Draw the money bag image
-      this.p.image(this.image, this.x, this.y + yOffset, this.width, this.height);
+      // Draw the money bag image with level-specific size
+      this.p.image(this.image, this.x, this.y + yOffset, displayWidth, displayHeight);
+      
+      // Debug log in first frame
+      if (this.p.frameCount < 10) {
+        console.log(`Money bag in level ${this.level} drawn at size ${displayWidth.toFixed(1)}x${displayHeight.toFixed(1)} (${sizeMultiplier * 100}% of original)`);
+      }
       
     } else {
       // Fallback if image fails to load (similar to old version but with golden color)
@@ -69,12 +85,12 @@ export class Goal {
         this.p.fill(218, 165, 32); // Regular gold color
       }
       
-      // Draw the goal as a rounded rectangle to look like a bag
-      this.p.rect(this.x, this.y, this.width, this.height, 10);
+      // Draw the goal as a rounded rectangle to look like a bag with level-specific size
+      this.p.rect(this.x, this.y, displayWidth, displayHeight, 10);
       
       // Draw a $ symbol
       this.p.fill(139, 69, 19); // Brown color for the $ symbol
-      this.p.textSize(this.width * 0.5);
+      this.p.textSize(displayWidth * 0.5);
       this.p.textAlign(this.p.CENTER, this.p.CENTER);
       this.p.text('$', this.x, this.y);
     }
@@ -83,7 +99,12 @@ export class Goal {
   }
   
   public contains(pointX: number): boolean {
-    return pointX > this.x - this.width / 2 && pointX < this.x + this.width / 2;
+    // Apply the same 30% reduction for collision detection in Level 1
+    const sizeMultiplier = this.level === 1 ? 0.7 : 1.0;
+    const actualWidth = this.width * sizeMultiplier;
+    
+    // Check if the point is within the adjusted width
+    return pointX > this.x - actualWidth / 2 && pointX < this.x + actualWidth / 2;
   }
   
   public isReached(): boolean {

@@ -206,8 +206,18 @@ export class GameManager {
       const goalX = i * goalWidth + goalWidth / 2;
       const goalY = laneHeight / 2; // Top of the screen
       
-      this.goals.push(new Goal(this.p, goalX, goalY, goalWidth * 0.8, laneHeight * 0.8));
+      // Pass the current level to the Goal constructor
+      this.goals.push(new Goal(
+        this.p, 
+        goalX, 
+        goalY, 
+        goalWidth * 0.8, 
+        laneHeight * 0.8,
+        this.level // Pass the current level
+      ));
     }
+    
+    console.log(`Created ${goalCount} money bags for level ${this.level}`); // Debug info
   }
   
   // Camera smoothing factor controls how quickly the camera follows the player
