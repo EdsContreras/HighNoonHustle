@@ -52,24 +52,51 @@ export class Lane {
     const baseSpacing = obstacleSpeed * interval;
     
     // Use a minimum spacing to prevent overlap
-    const minSpacing = this.getMinimumSpacing();
-    const spacing = Math.max(baseSpacing, minSpacing * 1.5); // Ensure at least 1.5x the obstacle width
+    // Get the obstacle width for this type
+    const obstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
     
-    // Place obstacles at regular intervals with some randomization but no overlap
-    let x = this.direction > 0 ? -50 : width + 50; // Start offscreen
+    // Ensure much wider spacing based on obstacle width - at least 2.5x obstacle width
+    const minSpacing = obstacleWidth * 2.5;
     
-    while (x > -200 && x < width + 200) { // Extend beyond screen to ensure proper coverage
-      // Determine position with some randomness
-      const position = x + (Math.random() * 0.3 * spacing) * (Math.random() > 0.5 ? 1 : -1);
+    // Use whichever spacing is larger
+    const spacing = Math.max(baseSpacing, minSpacing);
+    
+    // Clear existing obstacles first (to avoid any overlap with pre-existing ones)
+    this.obstacles = [];
+    
+    // Place obstacles at regular intervals with controlled spacing
+    const startX = this.direction > 0 ? -100 : width + 100; // Start well offscreen
+    const endX = this.direction > 0 ? width + 100 : -100; // End well offscreen
+    
+    // Calculate total distance to cover
+    const totalDistance = Math.abs(endX - startX);
+    
+    // Determine how many obstacles we can place with proper spacing
+    const maxObstacles = Math.floor(totalDistance / spacing);
+    
+    // Add obstacles with controlled spacing
+    for (let i = 0; i < maxObstacles; i++) {
+      // Calculate base position with even spacing
+      let position;
       
-      // Create obstacle if it won't overlap
+      if (this.direction > 0) {
+        position = startX + (i * spacing);
+      } else {
+        position = startX - (i * spacing);
+      }
+      
+      // Add a small random variation (+/- 10% of spacing)
+      const variation = (Math.random() * 0.2 - 0.1) * spacing;
+      position += variation;
+      
+      // Double-check that this position won't cause overlap
       if (!this.wouldOverlap(position)) {
         this.createObstacle(position);
       }
-      
-      // Move to next position
-      x += spacing;
     }
+    
+    // Debug log
+    console.log(`Lane with ${this.obstacleType}: Created ${this.obstacles.length} obstacles with min spacing of ${minSpacing.toFixed(1)}`);
   }
   
   // Get the minimum spacing based on obstacle width
@@ -83,7 +110,9 @@ export class Lane {
     if (!this.obstacleType) return false;
     
     const newObstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
-    const buffer = newObstacleWidth * 0.2; // 20% buffer
+    
+    // Increase buffer for better spacing (50% of obstacle width instead of 20%)
+    const buffer = newObstacleWidth * 0.75; 
     
     // Check against all existing obstacles
     for (const obstacle of this.obstacles) {
@@ -91,6 +120,8 @@ export class Lane {
       const minDistance = (obstacle.width + newObstacleWidth) / 2 + buffer;
       
       if (distance < minDistance) {
+        // Debug log when overlap is detected
+        // console.log(`Overlap prevented: distance=${distance.toFixed(1)}, minDistance=${minDistance.toFixed(1)}`);
         return true; // Would overlap
       }
     }
