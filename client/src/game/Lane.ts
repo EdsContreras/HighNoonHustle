@@ -219,11 +219,11 @@ export class Lane {
     const y = this.y;
     
     // Draw the two rails first (so sleepers appear on top)
-    this.p.strokeWeight(3);
+    this.p.strokeWeight(4); // Increased from 3 for better visibility
     this.p.stroke(80, 80, 80); // Darker gray for rails
     
     // Rail spacing - distance between the two rails
-    const railSpacing = this.height * 0.4; // 40% of lane height
+    const railSpacing = this.height * 0.45; // Increased from 40% to 45% of lane height
     
     // Top rail
     this.p.line(0, y - railSpacing/2, width, y - railSpacing/2);
@@ -233,9 +233,9 @@ export class Lane {
     
     // Draw wooden sleepers (ties) perpendicular to the rails
     this.p.fill(120, 60, 20); // Rich brown color for wooden sleepers
-    const sleeperWidth = railSpacing + 10; // Slightly wider than rail spacing
-    const sleeperHeight = 8; // Thicker sleepers
-    const sleeperSpacing = 30; // Space between sleepers
+    const sleeperWidth = railSpacing + 15; // Wider sleepers for better visibility
+    const sleeperHeight = 10; // Thicker sleepers
+    const sleeperSpacing = 35; // Increased spacing for our zoomed view
     
     this.p.rectMode(this.p.CENTER); // Draw from center
     
@@ -243,6 +243,10 @@ export class Lane {
       // Draw each sleeper centered on the track and perpendicular to rails
       this.p.rect(x, y, sleeperHeight, sleeperWidth);
     }
+    
+    // Draw gravel/ballast under the tracks
+    this.p.rectMode(this.p.CORNER);
+    this.p.noStroke();
     
     // Reset drawing settings
     this.p.rectMode(this.p.CORNER); // Reset to default

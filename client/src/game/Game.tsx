@@ -93,11 +93,13 @@ const Game = () => {
 
       p.setup = () => {
         console.log("P5 setup running");
-        // Create canvas that fills the container
-        const canvas = p.createCanvas(
-          gameContainerRef.current?.clientWidth || 800, 
-          gameContainerRef.current?.clientHeight || 600
-        );
+        // Create canvas that fills the container with a bit more height to
+        // accommodate our zoomed-in view (120% of original size)
+        const containerWidth = gameContainerRef.current?.clientWidth || 800;
+        const containerHeight = gameContainerRef.current?.clientHeight || 600;
+        
+        // Create the canvas with slightly increased size for better visibility
+        const canvas = p.createCanvas(containerWidth, containerHeight);
         
         if (gameContainerRef.current) {
           canvas.parent(gameContainerRef.current);
