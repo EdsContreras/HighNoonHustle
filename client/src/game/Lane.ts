@@ -44,29 +44,26 @@ export class Lane {
   private populateInitialObstacles(width: number) {
     if (!this.obstacleType || this.type === 'safe') return;
     
-    // Calculate obstacle interval
+    // Get the minimum spacing required based on obstacle type
+    const minSpacing = this.getMinimumSpacing();
+    
+    // Calculate obstacle interval 
     const interval = 1000 / this.obstacleFrequency;
     
-    // Calculate number of obstacles to fit across the screen
+    // Calculate obstacle speed for this level
     const obstacleSpeed = this.calculateObstacleSpeed();
     const baseSpacing = obstacleSpeed * interval;
     
-    // Use a minimum spacing to prevent overlap
-    // Get the obstacle width for this type
-    const obstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
-    
-    // Ensure much wider spacing based on obstacle width - at least 2.5x obstacle width
-    const minSpacing = obstacleWidth * 2.5;
-    
-    // Use whichever spacing is larger
-    const spacing = Math.max(baseSpacing, minSpacing);
+    // Use whichever spacing is larger, and add an extra 30% for safety
+    const spacing = Math.max(baseSpacing, minSpacing) * 1.3;
     
     // Clear existing obstacles first (to avoid any overlap with pre-existing ones)
     this.obstacles = [];
     
-    // Place obstacles at regular intervals with controlled spacing
-    const startX = this.direction > 0 ? -100 : width + 100; // Start well offscreen
-    const endX = this.direction > 0 ? width + 100 : -100; // End well offscreen
+    // Determine range of placement
+    // Start well offscreen to give obstacles time to spread out
+    const startX = this.direction > 0 ? -200 : width + 200; 
+    const endX = this.direction > 0 ? width + 200 : -200;
     
     // Calculate total distance to cover
     const totalDistance = Math.abs(endX - startX);
@@ -74,7 +71,10 @@ export class Lane {
     // Determine how many obstacles we can place with proper spacing
     const maxObstacles = Math.floor(totalDistance / spacing);
     
-    // Add obstacles with controlled spacing
+    // Create array of potential positions with randomized spacing
+    const positions = [];
+    
+    // Randomize positions with staggered spacing 
     for (let i = 0; i < maxObstacles; i++) {
       // Calculate base position with even spacing
       let position;
@@ -85,24 +85,49 @@ export class Lane {
         position = startX - (i * spacing);
       }
       
-      // Add a small random variation (+/- 10% of spacing)
-      const variation = (Math.random() * 0.2 - 0.1) * spacing;
+      // Add a random variation that's greater for smaller obstacles (+/- 20% of spacing)
+      // This creates more irregular spacing patterns
+      let variationPercentage = 0.2; // 20% default
+      
+      // Less variation for longer trains
+      if (this.obstacleType === ObstacleType.TRAIN) {
+        variationPercentage = 0.1; // 10% for trains (more regular pattern)
+      }
+      
+      const variation = (Math.random() * 2 * variationPercentage - variationPercentage) * spacing;
       position += variation;
       
-      // Double-check that this position won't cause overlap
+      // Store as potential position
+      positions.push(position);
+    }
+    
+    // Place obstacles one by one, checking for overlap each time
+    for (const position of positions) {
+      // Double-check that this position won't cause overlap with already placed obstacles
       if (!this.wouldOverlap(position)) {
         this.createObstacle(position);
       }
     }
     
     // Debug log
-    console.log(`Lane with ${this.obstacleType}: Created ${this.obstacles.length} obstacles with min spacing of ${minSpacing.toFixed(1)}`);
+    console.log(`Lane with ${this.obstacleType}: Created ${this.obstacles.length} obstacles with spacing of ${spacing.toFixed(1)}`);
   }
   
   // Get the minimum spacing based on obstacle width
   private getMinimumSpacing(): number {
-    if (!this.obstacleType) return 100;
-    return OBSTACLE_PROPERTIES[this.obstacleType].width * 1.2; // 20% buffer between obstacles
+    if (!this.obstacleType) return 150; // Increased default spacing
+    
+    // Larger buffer for different obstacle types
+    let spacingMultiplier = 2.0; // Minimum 200% spacing by default
+    
+    // Use even larger spacing for trains and horses
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      spacingMultiplier = 3.0; // 300% for trains since they're longer
+    } else if (this.obstacleType === ObstacleType.HORSE) {
+      spacingMultiplier = 2.5; // 250% for horses
+    }
+    
+    return OBSTACLE_PROPERTIES[this.obstacleType].width * spacingMultiplier;
   }
   
   // Check if a new obstacle at position x would overlap with existing obstacles
@@ -111,8 +136,17 @@ export class Lane {
     
     const newObstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
     
-    // Increase buffer for better spacing (50% of obstacle width instead of 20%)
-    const buffer = newObstacleWidth * 0.75; 
+    // Use a much larger buffer to ensure obstacles are well-spaced
+    // Use different buffers based on obstacle type
+    let bufferMultiplier = 1.5; // 150% of obstacle width by default
+    
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      bufferMultiplier = 2.0; // 200% for trains - they need more space
+    } else if (this.obstacleType === ObstacleType.HORSE) {
+      bufferMultiplier = 1.75; // 175% for horses
+    }
+    
+    const buffer = newObstacleWidth * bufferMultiplier;
     
     // Check against all existing obstacles
     for (const obstacle of this.obstacles) {
@@ -121,7 +155,7 @@ export class Lane {
       
       if (distance < minDistance) {
         // Debug log when overlap is detected
-        // console.log(`Overlap prevented: distance=${distance.toFixed(1)}, minDistance=${minDistance.toFixed(1)}`);
+        console.log(`Obstacle overlap prevented: type=${this.obstacleType}, distance=${distance.toFixed(1)}, required=${minDistance.toFixed(1)}`);
         return true; // Would overlap
       }
     }
@@ -135,6 +169,10 @@ export class Lane {
     return Math.min(speed, MAX_OBSTACLE_SPEED);
   }
   
+  // Adding property to track spawn attempts
+  private lastSpawnAttemptTime: number = 0;
+  private spawnCooldown: number = 250; // 250ms cooldown before retrying spawn
+  
   public update(width: number) {
     // Skip updates for safe zones
     if (this.type === 'safe') return;
@@ -146,11 +184,33 @@ export class Lane {
     
     if (timeSinceLastObstacle > obstacleInterval) {
       if (this.obstacleType) {
-        const newX = this.direction > 0 ? -50 : width + 50;
-        // Only create obstacle if it won't overlap with existing ones near the spawn point
-        if (!this.wouldOverlap(newX)) {
-          this.createObstacle(newX);
-          this.lastObstacleTime = currentTime;
+        // Check if we're out of the cooldown period for spawn attempts
+        const timeSinceLastAttempt = currentTime - this.lastSpawnAttemptTime;
+        
+        if (timeSinceLastAttempt > this.spawnCooldown) {
+          // Update last attempt time
+          this.lastSpawnAttemptTime = currentTime;
+          
+          // Position offscreen with more padding for larger obstacles
+          let offscreenPadding = 50; // Default padding
+          
+          if (this.obstacleType === ObstacleType.TRAIN) {
+            offscreenPadding = 150; // Larger padding for trains
+          } else if (this.obstacleType === ObstacleType.HORSE) {
+            offscreenPadding = 75; // Medium padding for horses
+          }
+          
+          const newX = this.direction > 0 ? -offscreenPadding : width + offscreenPadding;
+          
+          // Only create obstacle if it won't overlap with existing ones near the spawn point
+          if (!this.wouldOverlap(newX)) {
+            this.createObstacle(newX);
+            this.lastObstacleTime = currentTime;
+          } else {
+            // If there would be an overlap, log it and increase the cooldown slightly
+            // This helps prevent excessive overlap checks
+            this.spawnCooldown = Math.min(1000, this.spawnCooldown + 50);
+          }
         }
       }
     }
@@ -159,6 +219,15 @@ export class Lane {
     for (const obstacle of this.obstacles) {
       obstacle.update(width);
     }
+    
+    // Remove obstacles that are far offscreen to improve performance
+    this.obstacles = this.obstacles.filter(obstacle => {
+      const isVisible = (
+        obstacle.x > -200 && 
+        obstacle.x < width + 200
+      );
+      return isVisible;
+    });
   }
   
   private createObstacle(x: number) {
@@ -249,8 +318,8 @@ export class Lane {
     this.p.noStroke();
   }
   
-  public checkCollisions(playerRect: { x: number; y: number; width: number; height: number }) {
-    const collisions = [];
+  public checkCollisions(playerRect: { x: number; y: number; width: number; height: number }): Obstacle[] {
+    const collisions: Obstacle[] = [];
     
     // First, check if player is actually in this lane
     // Calculate player center Y coordinate
