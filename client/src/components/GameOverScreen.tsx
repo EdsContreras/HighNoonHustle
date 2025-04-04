@@ -22,9 +22,9 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
       }}
     >
       {/* Semi-transparent overlay to improve text legibility */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/20" />
       
-      <Card className="relative w-[90%] max-w-md border-2 border-amber-800 bg-black/75 text-white shadow-2xl z-10">
+      <Card className="relative w-[90%] max-w-md border-2 border-amber-800 bg-black/50 text-white shadow-2xl z-10">
         <CardContent className="pt-6 text-center">
           <div className="flex justify-center mb-2">
             <Skull className="h-16 w-16 text-red-500" />
@@ -32,7 +32,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
           <h1 className="text-4xl font-bold mb-2 text-amber-500">Game Over Scrub</h1>
           <p className="text-lg mb-4 text-amber-200">You got trampled in the wild west!</p>
 
-          <div className="bg-black/60 border border-amber-800 p-4 rounded-lg mb-6">
+          <div className="bg-black/40 border border-amber-800 p-4 rounded-lg mb-6">
             <h2 className="text-xl font-semibold mb-2 text-amber-300">Final Score</h2>
             <p className="text-3xl font-bold text-amber-400">{score}</p>
           </div>
