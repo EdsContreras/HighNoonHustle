@@ -2,6 +2,62 @@ import p5 from 'p5';
 import { ObstacleType, OBSTACLE_PROPERTIES } from './constants';
 import { loadImage } from './assets';
 
+// Smoke particle class for train smoke effect
+class SmokeParticle {
+  private p: p5;
+  private x: number;
+  private y: number;
+  private size: number;
+  private alpha: number;
+  private vx: number;
+  private vy: number;
+  private age: number;
+  private maxAge: number;
+  
+  constructor(p: p5, x: number, y: number) {
+    this.p = p;
+    this.x = x;
+    this.y = y;
+    this.size = p.random(5, 15); // Random size between 5 and 15
+    this.alpha = p.random(150, 200); // Start with high alpha (opacity)
+    // Random velocity - slight upward bias and influence from wind
+    this.vx = p.random(-0.5, 0.5);
+    this.vy = p.random(-1.2, -0.8); // Upward movement
+    this.age = 0;
+    this.maxAge = p.random(40, 60); // How long the particle lives
+  }
+  
+  update() {
+    // Move the particle
+    this.x += this.vx;
+    this.y += this.vy;
+    
+    // Increase size slightly as it rises (expanding smoke)
+    this.size += 0.1;
+    
+    // Reduce opacity as it ages
+    this.alpha -= this.alpha / this.maxAge;
+    
+    // Age the particle
+    this.age++;
+    
+    // Return true if the particle is still alive
+    return this.age < this.maxAge;
+  }
+  
+  draw() {
+    this.p.push();
+    this.p.noStroke();
+    
+    // Dark gray smoke with current alpha
+    this.p.fill(80, 80, 80, this.alpha);
+    this.p.ellipseMode(this.p.CENTER);
+    this.p.ellipse(this.x, this.y, this.size, this.size);
+    
+    this.p.pop();
+  }
+}
+
 export class Obstacle {
   private p: p5;
   public x: number;
@@ -15,6 +71,8 @@ export class Obstacle {
   private animationFrame: number = 0;
   private animationSpeed: number = 0.2; // Controls animation speed
   private rotationAngle: number = 0; // For spinning tumbleweeds
+  private smokeParticles: SmokeParticle[] = []; // For train smoke
+  private lastSmokeTime: number = 0; // When we last generated smoke
   
   constructor(
     p: p5, 
@@ -70,6 +128,36 @@ export class Obstacle {
     if (this.type === ObstacleType.TUMBLEWEED) {
       // Spin faster in the direction of movement
       this.rotationAngle += 0.1 * this.direction;
+    }
+    
+    // Generate smoke for trains
+    if (this.type === ObstacleType.TRAIN) {
+      const currentTime = this.p.millis();
+      // Create new smoke particles periodically
+      if (currentTime - this.lastSmokeTime > 100) { // Every 100ms
+        this.lastSmokeTime = currentTime;
+        
+        // Create two particles at slightly different positions for a more natural effect
+        // The smoke stack is positioned based on the direction and near the top of the train
+        const smokeStackX = this.direction > 0 ? -this.width * 0.4 : this.width * 0.4;
+        const smokeStackY = -this.height * 0.35;
+        
+        // Add the new smoke particles
+        this.smokeParticles.push(
+          new SmokeParticle(this.p, smokeStackX, smokeStackY)
+        );
+        
+        // Occasionally add a second particle for more varied effect
+        if (Math.random() > 0.5) {
+          const offset = this.p.random(-3, 3);
+          this.smokeParticles.push(
+            new SmokeParticle(this.p, smokeStackX + offset, smokeStackY - 2)
+          );
+        }
+      }
+      
+      // Update existing smoke particles
+      this.smokeParticles = this.smokeParticles.filter(particle => particle.update());
     }
   }
   
@@ -164,6 +252,14 @@ export class Obstacle {
     
     // Reset tint after drawing
     this.p.noTint();
+    
+    // Draw smoke particles for train
+    if (this.type === ObstacleType.TRAIN && this.smokeParticles.length > 0) {
+      // Draw all smoke particles
+      for (const particle of this.smokeParticles) {
+        particle.draw();
+      }
+    }
     
     this.p.pop();
   }
