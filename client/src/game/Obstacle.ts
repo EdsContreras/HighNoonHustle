@@ -176,13 +176,13 @@ export class Obstacle {
         // Per user instructions, we'll place the smoke exactly 50% from the front of the train
         // This is a simple, precise position that will be easy to see
         
-        // Position the smoke at exactly 0 as requested
+        // Position the smoke at exactly 5.0 as requested
         // Note: in p5.js, coordinates are centered on the object (0,0 is center)
-        // So we'll use a specific value of 0 for the smoke position (exactly at center)
-        const smokeStackX = 0; // Exactly at center (0 units from center)
+        // So we'll use a specific value of 5.0 for the smoke position
+        const smokeStackX = 5.0; // Exactly at 5.0 units from center
         
-        // Set vertical position to exactly 3.0 as requested
-        const smokeStackY = 3.0; // Explicit position at 3.0 units
+        // Set vertical position to exactly 1.0 as requested
+        const smokeStackY = 1.0; // Explicit position at 1.0 units
         
         // Add the new smoke particles with initial velocity matching train direction
         // This makes the smoke initially move with the train before drifting upward
