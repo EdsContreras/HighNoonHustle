@@ -30,7 +30,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
             <Skull className="h-16 w-16 text-red-500" />
           </div>
           <h1 className="text-4xl font-bold mb-2 text-amber-500">High Noon Hustle</h1>
-          <p className="text-lg mb-4 text-amber-200">GAME OVER: The sheriff caught you!</p>
+          <p className="text-lg mb-4 text-amber-200">GAME OVER OUTLAW: The sheriff caught you!</p>
 
           <div className="bg-black/40 border border-amber-800 p-4 rounded-lg mb-6">
             <h2 className="text-xl font-semibold mb-2 text-amber-300">Final Score</h2>
