@@ -56,4 +56,9 @@ export class Goal {
   public setReached(reached: boolean) {
     this.reached = reached;
   }
+  
+  // Get the Y position of the goal
+  public getY(): number {
+    return this.y;
+  }
 }

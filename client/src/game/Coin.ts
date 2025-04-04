@@ -275,6 +275,10 @@ export class Coin {
     return { x: this.x, y: this.y };
   }
   
+  public isAnimating(): boolean {
+    return this.collectAnimation && this.fireworks.length > 0;
+  }
+  
   public handleResize(newWidth: number, newHeight: number) {
     this.width = newWidth;
     this.height = newHeight;
