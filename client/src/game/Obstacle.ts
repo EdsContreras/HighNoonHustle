@@ -181,8 +181,8 @@ export class Obstacle {
         // So we'll use a specific value of 0 for the smoke position (exactly at center)
         const smokeStackX = 0; // Exactly at center (0 units from center)
         
-        // Set vertical position to be clearly visible at the top of the train
-        const smokeStackY = -this.height * 0.5; // At the very top of the train
+        // Set vertical position to exactly 3.0 as requested
+        const smokeStackY = 3.0; // Explicit position at 3.0 units
         
         // Add the new smoke particles with initial velocity matching train direction
         // This makes the smoke initially move with the train before drifting upward
