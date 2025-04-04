@@ -16,7 +16,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
     <div 
       className="absolute inset-0 flex items-center justify-center"
       style={{
-        backgroundImage: 'url(/assets/endgamescreen.png)',
+        backgroundImage: 'url(/assets/EndBackground.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

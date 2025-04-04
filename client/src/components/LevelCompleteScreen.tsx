@@ -18,7 +18,7 @@ const LevelCompleteScreen: React.FC<LevelCompleteScreenProps> = ({
     <div 
       className="absolute inset-0 flex items-center justify-center"
       style={{
-        backgroundImage: 'url(/assets/yourCowboyHorseImage.png)',
+        backgroundImage: 'url(/assets/IntroBackground.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
