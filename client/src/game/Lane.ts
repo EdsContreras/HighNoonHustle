@@ -54,9 +54,9 @@ export class Lane {
     const obstacleSpeed = this.calculateObstacleSpeed();
     const baseSpacing = obstacleSpeed * interval;
     
-    // Use whichever spacing is larger, and add an extra 100% for safety (up from 50%)
+    // Use whichever spacing is larger, and add an extra 150% for safety (up from 100%)
     // This extreme spacing ensures obstacles never overlap, even on level transitions
-    const spacing = Math.max(baseSpacing, minSpacing) * 2.0;
+    const spacing = Math.max(baseSpacing, minSpacing) * 2.5;
     
     // Clear existing obstacles first (to avoid any overlap with pre-existing ones)
     this.obstacles = [];
@@ -83,7 +83,7 @@ export class Lane {
     
     // Determine how many obstacles we can place with proper spacing
     // Use a more conservative estimate (distance / larger spacing)
-    const safeSpacing = Math.max(spacing, obstacleWidth * 3.5); // At least 3.5x width between obstacles
+    const safeSpacing = Math.max(spacing, obstacleWidth * 5.0); // At least 5.0x width between obstacles (up from 3.5x)
     const maxObstacles = Math.floor(totalDistance / safeSpacing);
     
     // Create array of potential positions with minimized randomization for more consistent spacing
@@ -159,32 +159,32 @@ export class Lane {
     
     // Use extreme buffer values to completely eliminate any overlap possibility
     // These values are intentionally excessive to guarantee separation
-    let bufferMultiplier = 3.0; // 300% of obstacle width by default (up from 200%)
+    let bufferMultiplier = 3.5; // 350% of obstacle width by default (up from 300%)
     
     if (this.obstacleType === ObstacleType.TRAIN) {
-      bufferMultiplier = 5.0; // 500% for trains (up from 300%)
+      bufferMultiplier = 8.0; // 800% for trains (up from 500%)
     } else if (this.obstacleType === ObstacleType.HORSE) {
-      bufferMultiplier = 4.0; // 400% for horses (up from 250%)
+      bufferMultiplier = 5.0; // 500% for horses (up from 400%)
     } else if (this.obstacleType === ObstacleType.TUMBLEWEED) {
-      bufferMultiplier = 3.5; // 350% for tumbleweeds
+      bufferMultiplier = 4.0; // 400% for tumbleweeds (up from 350%)
     } else if (this.obstacleType === ObstacleType.CACTUS) {
-      bufferMultiplier = 3.5; // 350% for cacti
+      bufferMultiplier = 4.0; // 400% for cacti (up from 350%)
     }
     
     const buffer = newObstacleWidth * bufferMultiplier;
     
     // Define absolute minimum distances in pixels for each obstacle type
     // This ensures spacing is always large enough regardless of obstacle width
-    let absoluteMinDistance = 200; // Default 200px minimum separation
+    let absoluteMinDistance = 250; // Default 250px minimum separation (up from 200px)
     
     if (this.obstacleType === ObstacleType.TRAIN) {
-      absoluteMinDistance = 800; // 800px minimum for trains (was implicitly ~300-400px)
+      absoluteMinDistance = 1200; // 1200px minimum for trains (up from 800px)
     } else if (this.obstacleType === ObstacleType.HORSE) {
-      absoluteMinDistance = 450; // 450px minimum for horses 
+      absoluteMinDistance = 600; // 600px minimum for horses (up from 450px)
     } else if (this.obstacleType === ObstacleType.TUMBLEWEED) {
-      absoluteMinDistance = 300; // 300px minimum for tumbleweeds
+      absoluteMinDistance = 400; // 400px minimum for tumbleweeds (up from 300px)
     } else if (this.obstacleType === ObstacleType.CACTUS) {
-      absoluteMinDistance = 300; // 300px minimum for cacti
+      absoluteMinDistance = 400; // 400px minimum for cacti (up from 300px)
     }
     
     // Check against all existing obstacles
@@ -330,11 +330,11 @@ export class Lane {
     
     // Use smaller limits for larger/longer obstacles to prevent train line backups
     if (this.obstacleType === ObstacleType.TRAIN) {
-      maxObstacles = 3; // Only allow 3 trains per lane to prevent any possibility of overlap (down from 5)
+      maxObstacles = 2; // Only allow 2 trains per lane to guarantee no overlap (down from 3)
     } else if (this.obstacleType === ObstacleType.HORSE) {
-      maxObstacles = 5; // Only allow 5 horses per lane (down from 8)
+      maxObstacles = 4; // Only allow 4 horses per lane (down from 5)
     } else if (this.obstacleType === ObstacleType.TUMBLEWEED) {
-      maxObstacles = 8; // Only allow 8 tumbleweeds per lane
+      maxObstacles = 6; // Only allow 6 tumbleweeds per lane (down from 8)
     }
     
     // If we're over the limit, remove the oldest obstacles
