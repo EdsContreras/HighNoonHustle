@@ -132,10 +132,21 @@ export class GameManager {
     // Calculate grid
     this.calculateGrid();
     
-    // Reset player - starting higher up on the screen
+    // Calculate starting position based on the level
     const startX = Math.floor(GRID_CELLS_X / 2);
-    // Start player at 45% from the bottom
-    const startY = Math.floor(GRID_CELLS_Y * 0.55);
+    let startY;
+    
+    // For level 3 (the final level), start at the bottom safe zone
+    if (level === 3) {
+      // Start at the bottom safe zone, right above the first obstacle lane
+      // This ensures the player doesn't start in an obstacle lane
+      startY = Math.floor(GRID_CELLS_Y * 0.75);
+      console.log(`Level 3: Starting player at safer position (${startX}, ${startY})`);
+    } else {
+      // Start player at 45% from the bottom for other levels
+      startY = Math.floor(GRID_CELLS_Y * 0.55);
+    }
+    
     if (this.player) {
       this.player.reset(startX, startY);
       this.player.handleResize(this.cellWidth, this.cellHeight);
@@ -296,12 +307,19 @@ export class GameManager {
         }
       }
       
-      if (reachedMoneyBag) {
-        // Reset player position to starting position (45% from bottom)
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
-      } else if (!this.player.isMoving()) {
-        // Player reached top but not in a money bag, reset position to starting position
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
+      if (reachedMoneyBag || !this.player.isMoving()) {
+        // Reset player position to the appropriate starting position based on level
+        const startX = Math.floor(GRID_CELLS_X / 2);
+        let startY;
+        
+        // Use level-specific starting position
+        if (this.level === 3) {
+          startY = Math.floor(GRID_CELLS_Y * 0.75); // Safer position for level 3
+        } else {
+          startY = Math.floor(GRID_CELLS_Y * 0.55); // Default for other levels
+        }
+        
+        this.player.reset(startX, startY);
       }
     }
     
