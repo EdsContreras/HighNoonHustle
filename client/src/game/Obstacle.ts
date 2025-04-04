@@ -9,7 +9,7 @@ class SmokeParticle {
   private y: number;
   private size: number;
   private alpha: number;
-  private vx: number;
+  public vx: number; // Made public so it can be modified
   private vy: number;
   private age: number;
   private maxAge: number;
@@ -18,13 +18,17 @@ class SmokeParticle {
     this.p = p;
     this.x = x;
     this.y = y;
-    this.size = p.random(5, 15); // Random size between 5 and 15
-    this.alpha = p.random(150, 200); // Start with high alpha (opacity)
-    // Random velocity - slight upward bias and influence from wind
-    this.vx = p.random(-0.5, 0.5);
-    this.vy = p.random(-1.2, -0.8); // Upward movement
+    // Start with smaller size, will grow as it rises
+    this.size = p.random(4, 8); // Smaller initial size
+    this.alpha = p.random(170, 220); // Start with high alpha (opacity)
+    
+    // Random velocity - more vertical with slight drift
+    // More vertical movement for a chimney-like effect
+    this.vx = p.random(-0.3, 0.3); // Less horizontal drift
+    this.vy = p.random(-1.0, -0.7); // More consistent upward movement
+    
     this.age = 0;
-    this.maxAge = p.random(40, 60); // How long the particle lives
+    this.maxAge = p.random(30, 45); // Shorter lifespan for quicker dissipation
   }
   
   update() {
@@ -32,27 +36,52 @@ class SmokeParticle {
     this.x += this.vx;
     this.y += this.vy;
     
-    // Increase size slightly as it rises (expanding smoke)
-    this.size += 0.1;
+    // Add a slight wiggle effect for more realistic smoke movement
+    // This creates a subtle wandering/billowing motion
+    this.vx += this.p.random(-0.03, 0.03);
     
-    // Reduce opacity as it ages
-    this.alpha -= this.alpha / this.maxAge;
+    // Gradually slow down both horizontal and vertical movement as the particle ages
+    // This creates the effect of smoke losing momentum as it rises
+    this.vx *= 0.99;
+    this.vy *= 0.98;
+    
+    // Increase size slightly as it rises (expanding smoke)
+    // Smoke expands more when it's newer, then expansion slows down
+    const growthRate = Math.max(0.05, 0.15 - (this.age / this.maxAge) * 0.1);
+    this.size += growthRate;
+    
+    // Reduce opacity as it ages - faster fade near the end of life
+    if (this.age > this.maxAge * 0.7) {
+      // Fade out faster towards the end
+      this.alpha -= this.alpha / (this.maxAge * 0.15);
+    } else {
+      // Slower fade in the beginning
+      this.alpha -= this.alpha / this.maxAge;
+    }
     
     // Age the particle
     this.age++;
     
     // Return true if the particle is still alive
-    return this.age < this.maxAge;
+    return this.age < this.maxAge && this.alpha > 5;
   }
   
   draw() {
     this.p.push();
     this.p.noStroke();
     
-    // Dark gray smoke with current alpha
-    this.p.fill(80, 80, 80, this.alpha);
+    // More realistic dark gray smoke with current alpha
+    // Using darker color initially
+    this.p.fill(60, 60, 60, this.alpha);
     this.p.ellipseMode(this.p.CENTER);
+    
+    // Draw the main smoke particle
     this.p.ellipse(this.x, this.y, this.size, this.size);
+    
+    // Add a lighter inner part for more depth
+    // This creates a subtle gradient effect
+    this.p.fill(90, 90, 90, this.alpha * 0.7);
+    this.p.ellipse(this.x, this.y, this.size * 0.6, this.size * 0.6);
     
     this.p.pop();
   }
@@ -137,22 +166,41 @@ export class Obstacle {
       if (currentTime - this.lastSmokeTime > 100) { // Every 100ms
         this.lastSmokeTime = currentTime;
         
-        // Create two particles at slightly different positions for a more natural effect
-        // The smoke stack is positioned based on the direction and near the top of the train
-        const smokeStackX = this.direction > 0 ? -this.width * 0.4 : this.width * 0.4;
-        const smokeStackY = -this.height * 0.35;
+        // Create particles at the precise position of the train's smokestack
+        // After examining the train image closely, we're adjusting the smokestack position
         
-        // Add the new smoke particles
-        this.smokeParticles.push(
-          new SmokeParticle(this.p, smokeStackX, smokeStackY)
-        );
+        // Determine smokestack position based on train direction
+        // Updated to better match the train graphics - smokestack is positioned at around 1/4 of the train from the front
+        // For rightward-moving trains, smokestack is on the left side (front)
+        // For leftward-moving trains, smokestack is on the right side (front)
+        
+        // Horizontal position: 1/4 of the way from the front of the train
+        const frontOffset = this.width * 0.25; // 25% from the front
+        const smokeStackX = this.direction > 0 ? -frontOffset : frontOffset;
+        
+        // Vertical position: slightly above the top of the train for better visual effect
+        // The train height is measured from center, so -height/2 is the top
+        const smokeStackY = -this.height * 0.55; // Slightly above the top (5% above)
+        
+        // Add the new smoke particles with initial velocity matching train direction
+        // This makes the smoke initially move with the train before drifting upward
+        const particle = new SmokeParticle(this.p, smokeStackX, smokeStackY);
+        // Give an initial horizontal boost in the train's direction
+        particle.vx += this.direction * 0.2; // Add some initial velocity in train's direction
+        this.smokeParticles.push(particle);
         
         // Occasionally add a second particle for more varied effect
-        if (Math.random() > 0.5) {
-          const offset = this.p.random(-3, 3);
-          this.smokeParticles.push(
-            new SmokeParticle(this.p, smokeStackX + offset, smokeStackY - 2)
+        if (Math.random() > 0.4) { // Increased probability for more particles
+          const offsetX = this.p.random(-2, 2);
+          const offsetY = this.p.random(-1, 1);
+          const particle2 = new SmokeParticle(
+            this.p, 
+            smokeStackX + offsetX, 
+            smokeStackY + offsetY
           );
+          // Also give this particle a direction boost
+          particle2.vx += this.direction * 0.15;
+          this.smokeParticles.push(particle2);
         }
       }
       
