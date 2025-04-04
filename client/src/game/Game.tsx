@@ -136,7 +136,7 @@ const Game = () => {
       tryLoadAudio('background.mp3', 0.3),
       tryLoadAudio('hit.mp3', 0.5),
       tryLoadAudio('success.mp3', 0.5),
-      tryLoadAudio('grunt.mp3', 0.4),
+      tryLoadAudio('grunt_new.mp3', 1.0), // Use the new grunt sound at full volume
       tryLoadAudio('gameover.mp3', 0.5),
       tryLoadAudio('wompwomp.mp3', 0.6)
     ]).then(results => {
