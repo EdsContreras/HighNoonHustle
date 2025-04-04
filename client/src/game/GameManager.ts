@@ -46,6 +46,8 @@ export class GameManager {
   private backgroundImage: p5.Image | null;
   private cameraOffsetY: number; // Camera offset for scrolling
   private targetCameraY: number; // Target camera position for smooth transitions
+  private requiredCoins: number; // Number of coins required to complete the level
+  private collectedCoins: number; // Number of coins collected in current level
   
   constructor(p: p5, callbacks: GameCallbacks) {
     this.p = p;
@@ -64,6 +66,8 @@ export class GameManager {
     this.backgroundImage = null;
     this.cameraOffsetY = 0;
     this.targetCameraY = 0; // Initialize target camera position
+    this.requiredCoins = 0;
+    this.collectedCoins = 0;
     
     this.loadAssets();
   }
@@ -107,6 +111,7 @@ export class GameManager {
     this.targetCameraY = 0; // Reset target camera position
     this.levelStartTime = this.p.millis();
     this.levelTimeLimit = levelConfig.timeLimit * 1000; // Convert to milliseconds
+    this.collectedCoins = 0; // Reset collected coins counter
     
     // Reset lives and score when level is 1 (new game)
     if (level === 1) {
@@ -172,6 +177,10 @@ export class GameManager {
       
       this.goals.push(new Goal(this.p, goalX, goalY, goalWidth * 0.8, laneHeight * 0.8));
     }
+    
+    // Set the required coins to be all coins in the level
+    this.requiredCoins = this.coins.length;
+    console.log(`Level ${level} requires collecting ${this.requiredCoins} coins`);
   }
   
   // Camera smoothing factor controls how quickly the camera follows the player
@@ -250,6 +259,10 @@ export class GameManager {
           // Collect the coin
           coin.collect();
           
+          // Increment collected coins count
+          this.collectedCoins++;
+          console.log(`Collected coin: ${this.collectedCoins} of ${this.coins.length}`);
+          
           // Add points for collecting coin
           this.score += POINTS_FOR_COIN;
           this.callbacks.updateScore(this.score);
@@ -261,6 +274,14 @@ export class GameManager {
       }
     }
     
+    // Check if all required coins have been collected and update goal visual states
+    const hasAllCoins = this.collectedCoins >= this.requiredCoins;
+    
+    // Update all goals to show if they're available or not
+    for (const goal of this.goals) {
+      goal.setAllCoinsCollected(hasAllCoins);
+    }
+    
     // Check if player reached a goal
     const playerPos = this.player.getGridPosition();
     if (playerPos.y === 0) {
@@ -268,16 +289,26 @@ export class GameManager {
       
       for (const goal of this.goals) {
         if (!goal.isReached() && goal.contains(playerPos.x * this.cellWidth + this.cellWidth / 2)) {
-          goal.setReached(true);
-          this.score += POINTS_FOR_GOAL;
-          this.callbacks.updateScore(this.score);
-          
-          // Play success sound
-          const { playSuccess } = useAudio.getState();
-          playSuccess();
-          
-          reachedGoal = true;
-          break;
+          // Only set the goal as reached if all coins are collected
+          if (hasAllCoins) {
+            goal.setReached(true);
+            this.score += POINTS_FOR_GOAL;
+            this.callbacks.updateScore(this.score);
+            
+            // Play success sound
+            const { playSuccess } = useAudio.getState();
+            playSuccess();
+            
+            reachedGoal = true;
+            break;
+          } else {
+            // Play hit sound if not all coins are collected
+            const { playHit } = useAudio.getState();
+            playHit();
+            
+            // Log message for debugging
+            console.log(`Cannot complete level yet. Collected: ${this.collectedCoins}/${this.requiredCoins} money bags.`);
+          }
         }
       }
       
@@ -285,7 +316,8 @@ export class GameManager {
         // Reset player position to starting position (45% from bottom)
         this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
       } else if (!this.player.isMoving()) {
-        // Player reached top but not in a goal, reset position to starting position
+        // Player reached top but not in a goal or not all coins collected
+        // Reset position to starting position
         this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
       }
     }
@@ -423,5 +455,19 @@ export class GameManager {
     for (const coin of this.coins) {
       coin.handleResize(this.cellWidth, this.cellHeight);
     }
+  }
+  
+  /**
+   * Gets the number of coins collected so far
+   */
+  public getCollectedCoinsCount(): number {
+    return this.collectedCoins;
+  }
+  
+  /**
+   * Gets the total number of coins required
+   */
+  public getRequiredCoinsCount(): number {
+    return this.requiredCoins;
   }
 }
