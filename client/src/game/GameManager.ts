@@ -203,8 +203,8 @@ export class GameManager {
     for (const lane of this.lanes) {
       lane.update(this.p.width);
       
-      // Skip collision detection if player is still moving
-      if (this.player.isMoving()) continue;
+      // Skip collision detection if player is still moving or invincible
+      if (this.player.isMoving() || this.player.isInvincible()) continue;
       
       // Check collisions with obstacles
       const playerRect = this.player.getRect();
@@ -356,6 +356,12 @@ export class GameManager {
   }
   
   private handleCollision() {
+    // Check if player is invincible - if so, ignore the collision
+    if (this.player && this.player.isInvincible()) {
+      console.log("Player is invincible - ignoring collision");
+      return;
+    }
+    
     // Play hit sound
     const { playHit } = useAudio.getState();
     playHit();
@@ -366,9 +372,10 @@ export class GameManager {
     if (this.lives <= 0) {
       this.handleGameOver();
     } else {
-      // Reset player position to starting position (45% from bottom)
+      // Instead of resetting position, make player invincible for 2 seconds
       if (this.player) {
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
+        // Make player invincible for 2 seconds (2000 milliseconds)
+        this.player.makeInvincible(2000);
       }
     }
   }

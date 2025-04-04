@@ -21,6 +21,11 @@ export class Player {
   private lastMoveTime: number;
   private moving: boolean;
   private image: p5.Image | null;
+  private invincible: boolean;
+  private invincibilityTime: number;
+  private invincibilityDuration: number; // Duration in milliseconds
+  private flashInterval: number; // How fast to flash in milliseconds
+  private lastFlashTime: number;
 
   constructor(
     p: p5,
@@ -42,6 +47,13 @@ export class Player {
     this.lastMoveTime = 0;
     this.moving = false;
     this.image = null;
+    
+    // Invincibility settings
+    this.invincible = false;
+    this.invincibilityTime = 0;
+    this.invincibilityDuration = 2000; // 2 seconds of invincibility
+    this.flashInterval = 200; // Flash every 200ms
+    this.lastFlashTime = 0;
 
     this.loadAssets();
   }
@@ -76,6 +88,15 @@ export class Player {
       this.y = this.targetY;
       this.moving = false;
     }
+    
+    // Check if invincibility has expired
+    if (this.invincible) {
+      const currentTime = this.p.millis();
+      if (currentTime - this.invincibilityTime > this.invincibilityDuration) {
+        this.invincible = false;
+        console.log("Player invincibility ended");
+      }
+    }
   }
 
   public draw() {
@@ -84,17 +105,40 @@ export class Player {
 
     this.p.push();
     this.p.translate(pixelX + this.cellWidth / 2, pixelY + this.cellHeight / 2);
-
-    // Draw the player sprite
-    if (this.image) {
-      this.p.imageMode(this.p.CENTER);
-      this.p.image(this.image, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
-    } else {
-      // Fallback if image isn't loaded
-      this.p.fill(200, 100, 50);
-      this.p.rectMode(this.p.CENTER);
-      this.p.rect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+    
+    // Handle flashing effect when invincible
+    let visible = true;
+    if (this.invincible) {
+      const currentTime = this.p.millis();
+      
+      // Only draw player every other flash interval
+      if (currentTime - this.lastFlashTime > this.flashInterval) {
+        this.lastFlashTime = currentTime;
+        visible = !visible; // Toggle visibility for flashing effect
+      }
+      
+      // Apply a white tint when invincible (alternating with normal appearance)
+      if (visible) {
+        this.p.tint(255, 255, 255, 180); // Semi-transparent white
+      }
     }
+    
+    // Only draw if visible (for flashing effect)
+    if (visible) {
+      // Draw the player sprite
+      if (this.image) {
+        this.p.imageMode(this.p.CENTER);
+        this.p.image(this.image, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+      } else {
+        // Fallback if image isn't loaded
+        this.p.fill(200, 100, 50);
+        this.p.rectMode(this.p.CENTER);
+        this.p.rect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+      }
+    }
+    
+    // Reset tint
+    this.p.noTint();
     
     // Uncomment for debugging to show the hitbox
     // const hitbox = this.getRect();
@@ -184,6 +228,9 @@ export class Player {
     this.targetX = startX;
     this.targetY = startY;
     this.moving = false;
+    
+    // Reset invincibility state when position is reset
+    this.invincible = false;
   }
 
   public handleResize(cellWidth: number, cellHeight: number) {
@@ -200,5 +247,27 @@ export class Player {
       x: Math.round(this.x),
       y: Math.round(this.y),
     };
+  }
+  
+  /**
+   * Start the invincibility effect
+   * @param duration Optional override for the invincibility duration in milliseconds
+   */
+  public makeInvincible(duration?: number) {
+    this.invincible = true;
+    this.invincibilityTime = this.p.millis();
+    
+    if (duration !== undefined) {
+      this.invincibilityDuration = duration;
+    }
+    
+    console.log("Player is now invincible for", this.invincibilityDuration / 1000, "seconds");
+  }
+  
+  /**
+   * Check if the player is currently invincible
+   */
+  public isInvincible(): boolean {
+    return this.invincible;
   }
 }
