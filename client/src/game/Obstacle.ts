@@ -176,13 +176,13 @@ export class Obstacle {
         // Per user instructions, we'll place the smoke exactly 50% from the front of the train
         // This is a simple, precise position that will be easy to see
         
-        // Position the smoke at exactly 10.0 as requested
+        // Position the smoke directly above the smokestack on the train
         // Note: in p5.js, coordinates are centered on the object (0,0 is center)
-        // So we'll use a specific value of 10.0 for the smoke position
-        const smokeStackX = 10.0; // Exactly at 10.0 units from center
+        // Looking at the train image, the smokestack appears to be at around -20 units from center
+        const smokeStackX = -20.0; // Aligned with the smokestack
         
-        // Set vertical position to exactly 0.5 as requested
-        const smokeStackY = 0.5; // Explicit position at 0.5 units
+        // Set vertical position to be directly above the smokestack
+        const smokeStackY = -20.0; // Above the smokestack to look natural
         
         // Add the new smoke particles with initial velocity matching train direction
         // This makes the smoke initially move with the train before drifting upward
