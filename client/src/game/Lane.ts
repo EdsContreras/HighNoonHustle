@@ -44,7 +44,7 @@ export class Lane {
   private populateInitialObstacles(width: number) {
     if (!this.obstacleType || this.type === 'safe') return;
     
-    // Get the minimum spacing required based on obstacle type
+    // Get the minimum spacing required based on obstacle type - now with increased values
     const minSpacing = this.getMinimumSpacing();
     
     // Calculate obstacle interval 
@@ -54,47 +54,63 @@ export class Lane {
     const obstacleSpeed = this.calculateObstacleSpeed();
     const baseSpacing = obstacleSpeed * interval;
     
-    // Use whichever spacing is larger, and add an extra 30% for safety
-    const spacing = Math.max(baseSpacing, minSpacing) * 1.3;
+    // Use whichever spacing is larger, and add an extra 50% for safety (up from 30%)
+    const spacing = Math.max(baseSpacing, minSpacing) * 1.5;
     
     // Clear existing obstacles first (to avoid any overlap with pre-existing ones)
     this.obstacles = [];
     
     // Determine range of placement
-    // Start well offscreen to give obstacles time to spread out
-    const startX = this.direction > 0 ? -200 : width + 200; 
-    const endX = this.direction > 0 ? width + 200 : -200;
+    // Start further offscreen for wider obstacles to prevent any visual overlap
+    let offscreenPadding = 300; // Increased from 200
+    
+    // Adjust offscreen padding based on obstacle type
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      offscreenPadding = 500; // Much larger for trains
+    } else if (this.obstacleType === ObstacleType.HORSE) {
+      offscreenPadding = 400; // Larger for horses
+    }
+    
+    const startX = this.direction > 0 ? -offscreenPadding : width + offscreenPadding;
+    const endX = this.direction > 0 ? width + offscreenPadding : -offscreenPadding;
     
     // Calculate total distance to cover
     const totalDistance = Math.abs(endX - startX);
     
-    // Determine how many obstacles we can place with proper spacing
-    const maxObstacles = Math.floor(totalDistance / spacing);
+    // Calculate actual obstacle width
+    const obstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
     
-    // Create array of potential positions with randomized spacing
+    // Determine how many obstacles we can place with proper spacing
+    // Use a more conservative estimate (distance / larger spacing)
+    const safeSpacing = Math.max(spacing, obstacleWidth * 3.5); // At least 3.5x width between obstacles
+    const maxObstacles = Math.floor(totalDistance / safeSpacing);
+    
+    // Create array of potential positions with minimized randomization for more consistent spacing
     const positions = [];
     
-    // Randomize positions with staggered spacing 
+    // Use more consistent spacing for larger obstacles
     for (let i = 0; i < maxObstacles; i++) {
       // Calculate base position with even spacing
       let position;
       
       if (this.direction > 0) {
-        position = startX + (i * spacing);
+        position = startX + (i * safeSpacing);
       } else {
-        position = startX - (i * spacing);
+        position = startX - (i * safeSpacing);
       }
       
-      // Add a random variation that's greater for smaller obstacles (+/- 20% of spacing)
-      // This creates more irregular spacing patterns
-      let variationPercentage = 0.2; // 20% default
+      // Use much smaller variation to prevent any chance of overlap
+      // Smaller percentage for larger obstacles
+      let variationPercentage = 0.05; // Only 5% variation by default (down from 20%)
       
-      // Less variation for longer trains
+      // Virtually no variation for trains to prevent any overlap possibility
       if (this.obstacleType === ObstacleType.TRAIN) {
-        variationPercentage = 0.1; // 10% for trains (more regular pattern)
+        variationPercentage = 0.02; // Only 2% for trains
+      } else if (this.obstacleType === ObstacleType.HORSE) {
+        variationPercentage = 0.03; // Only 3% for horses
       }
       
-      const variation = (Math.random() * 2 * variationPercentage - variationPercentage) * spacing;
+      const variation = (Math.random() * 2 * variationPercentage - variationPercentage) * safeSpacing;
       position += variation;
       
       // Store as potential position
@@ -115,16 +131,18 @@ export class Lane {
   
   // Get the minimum spacing based on obstacle width
   private getMinimumSpacing(): number {
-    if (!this.obstacleType) return 150; // Increased default spacing
+    if (!this.obstacleType) return 200; // Increased default spacing to 200
     
-    // Larger buffer for different obstacle types
-    let spacingMultiplier = 2.0; // Minimum 200% spacing by default
+    // Use much larger spacing multipliers to prevent any chance of overlap
+    let spacingMultiplier = 2.5; // 250% spacing by default (up from 200%)
     
-    // Use even larger spacing for trains and horses
+    // Drastically increase spacing for trains and horses to fix overlapping
     if (this.obstacleType === ObstacleType.TRAIN) {
-      spacingMultiplier = 3.0; // 300% for trains since they're longer
+      spacingMultiplier = 4.5; // 450% for trains (up from 300%)
     } else if (this.obstacleType === ObstacleType.HORSE) {
-      spacingMultiplier = 2.5; // 250% for horses
+      spacingMultiplier = 3.5; // 350% for horses (up from 250%)
+    } else if (this.obstacleType === ObstacleType.CACTUS) { 
+      spacingMultiplier = 3.0; // 300% for cactus - these are stationary but wide
     }
     
     return OBSTACLE_PROPERTIES[this.obstacleType].width * spacingMultiplier;
@@ -136,14 +154,14 @@ export class Lane {
     
     const newObstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
     
-    // Use a much larger buffer to ensure obstacles are well-spaced
-    // Use different buffers based on obstacle type
-    let bufferMultiplier = 1.5; // 150% of obstacle width by default
+    // Use MUCH larger buffer values to completely eliminate any overlap possibility
+    // These values are intentionally excessive to guarantee separation
+    let bufferMultiplier = 2.0; // 200% of obstacle width by default (up from 150%)
     
     if (this.obstacleType === ObstacleType.TRAIN) {
-      bufferMultiplier = 2.0; // 200% for trains - they need more space
+      bufferMultiplier = 3.0; // 300% for trains (up from 200%)
     } else if (this.obstacleType === ObstacleType.HORSE) {
-      bufferMultiplier = 1.75; // 175% for horses
+      bufferMultiplier = 2.5; // 250% for horses (up from 175%)
     }
     
     const buffer = newObstacleWidth * bufferMultiplier;
@@ -151,10 +169,12 @@ export class Lane {
     // Check against all existing obstacles
     for (const obstacle of this.obstacles) {
       const distance = Math.abs(obstacle.x - x);
+      
+      // Calculate minimum required distance with FULL obstacle width plus buffer
       const minDistance = (obstacle.width + newObstacleWidth) / 2 + buffer;
       
       if (distance < minDistance) {
-        // Debug log when overlap is detected
+        // Debug log when overlap is detected, with detailed type info
         console.log(`Obstacle overlap prevented: type=${this.obstacleType}, distance=${distance.toFixed(1)}, required=${minDistance.toFixed(1)}`);
         return true; // Would overlap
       }
@@ -191,13 +211,14 @@ export class Lane {
           // Update last attempt time
           this.lastSpawnAttemptTime = currentTime;
           
-          // Position offscreen with more padding for larger obstacles
-          let offscreenPadding = 50; // Default padding
+          // Position offscreen with much more padding for larger obstacles
+          // Use the same generous values as in populateInitialObstacles
+          let offscreenPadding = 300; // Increased from 50
           
           if (this.obstacleType === ObstacleType.TRAIN) {
-            offscreenPadding = 150; // Larger padding for trains
+            offscreenPadding = 500; // Much larger for trains (from 150)
           } else if (this.obstacleType === ObstacleType.HORSE) {
-            offscreenPadding = 75; // Medium padding for horses
+            offscreenPadding = 400; // Larger for horses (from 75)
           }
           
           const newX = this.direction > 0 ? -offscreenPadding : width + offscreenPadding;
@@ -207,9 +228,25 @@ export class Lane {
             this.createObstacle(newX);
             this.lastObstacleTime = currentTime;
           } else {
-            // If there would be an overlap, log it and increase the cooldown slightly
-            // This helps prevent excessive overlap checks
-            this.spawnCooldown = Math.min(1000, this.spawnCooldown + 50);
+            // If there would be an overlap, increase the cooldown significantly
+            // to prevent constant overlap checking, especially for trains and horses
+            let cooldownIncrease = 100; // Default increase (up from 50)
+            
+            // Use longer cooldowns for larger obstacles
+            if (this.obstacleType === ObstacleType.TRAIN) {
+              cooldownIncrease = 500; // Much longer cooldown for trains
+            } else if (this.obstacleType === ObstacleType.HORSE) {
+              cooldownIncrease = 300; // Longer cooldown for horses
+            }
+            
+            // Set maximum cooldown based on obstacle type
+            const maxCooldown = this.obstacleType === ObstacleType.TRAIN ? 2000 : 1500;
+            
+            // Increase cooldown, but cap it at the maximum value
+            this.spawnCooldown = Math.min(maxCooldown, this.spawnCooldown + cooldownIncrease);
+            
+            // Log the cooldown increase for debugging
+            console.log(`Increased spawn cooldown for ${this.obstacleType} to ${this.spawnCooldown}ms`);
           }
         }
       }
@@ -221,11 +258,28 @@ export class Lane {
     }
     
     // Remove obstacles that are far offscreen to improve performance
+    // Use bigger offscreen bounds based on obstacle type to ensure we're not removing
+    // obstacles that are about to enter the screen (especially for larger obstacles)
     this.obstacles = this.obstacles.filter(obstacle => {
+      // Calculate offscreen boundary based on obstacle type
+      let offscreenBoundary = 300; // Default offscreen boundary (up from 200)
+      
+      if (obstacle.type === ObstacleType.TRAIN) {
+        offscreenBoundary = 600; // Much larger for trains
+      } else if (obstacle.type === ObstacleType.HORSE) {
+        offscreenBoundary = 450; // Larger for horses
+      }
+      
       const isVisible = (
-        obstacle.x > -200 && 
-        obstacle.x < width + 200
+        obstacle.x > -offscreenBoundary && 
+        obstacle.x < width + offscreenBoundary
       );
+      
+      // If an obstacle is being removed due to being offscreen, log it
+      if (!isVisible) {
+        console.log(`Removing offscreen ${obstacle.type} at position ${obstacle.x.toFixed(1)}`);
+      }
+      
       return isVisible;
     });
   }
@@ -246,9 +300,22 @@ export class Lane {
     
     this.obstacles.push(obstacle);
     
-    // Limit the number of obstacles for performance
-    if (this.obstacles.length > 20) {
-      this.obstacles.shift();
+    // Limit the number of obstacles for performance and to prevent overcrowding
+    // Use different limits based on obstacle type
+    let maxObstacles = 15; // Default is now 15 (down from 20)
+    
+    // Use smaller limits for larger/longer obstacles to prevent train line backups
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      maxObstacles = 5; // Only allow 5 trains per lane to prevent overcrowding
+    } else if (this.obstacleType === ObstacleType.HORSE) {
+      maxObstacles = 8; // Only allow 8 horses per lane
+    }
+    
+    // If we're over the limit, remove the oldest obstacles
+    if (this.obstacles.length > maxObstacles) {
+      // Log when we're hitting the obstacle limit for debugging
+      console.log(`Obstacle limit reached for ${this.obstacleType}: removing oldest obstacle`);
+      this.obstacles.shift(); // Remove the oldest obstacle
     }
   }
   

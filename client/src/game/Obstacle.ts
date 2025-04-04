@@ -117,12 +117,23 @@ export class Obstacle {
     // Draw the obstacle sprite
     if (this.image) {
       this.p.imageMode(this.p.CENTER);
+      
+      // For trains, use a slightly reduced visual width to help with overlap issues
+      // while maintaining the same hitbox coordinates for collision detection
+      let displayWidth = this.width;
+      let displayHeight = this.height;
+      
+      if (this.type === ObstacleType.TRAIN) {
+        // Scale down visual train size but keep the same hitbox
+        displayWidth = this.width * 0.85; // Visually 85% of original width
+      }
+      
       this.p.image(
         this.image, 
         0, 
         0, 
-        this.width, 
-        this.height
+        displayWidth, 
+        displayHeight
       );
     } else {
       // Fallback if image isn't loaded - with darker colors
@@ -139,7 +150,16 @@ export class Obstacle {
       }
       
       this.p.rectMode(this.p.CENTER);
-      this.p.rect(0, 0, this.width, this.height);
+      
+      // Scale down the visual representation for trains in the fallback drawing too
+      let displayWidth = this.width;
+      let displayHeight = this.height;
+      
+      if (this.type === ObstacleType.TRAIN) {
+        displayWidth = this.width * 0.85; // Match the 85% scale used for images
+      }
+      
+      this.p.rect(0, 0, displayWidth, displayHeight);
     }
     
     // Reset tint after drawing
@@ -149,9 +169,21 @@ export class Obstacle {
   }
   
   public getRect() {
-    // Make the hitbox 90% of the visual size for more forgiving collisions
-    const hitboxWidth = this.width * 0.9;
-    const hitboxHeight = this.height * 0.9;
+    // Make the hitbox smaller than the visual size for more forgiving collisions
+    // Use different hitbox sizes based on obstacle type
+    let hitboxWidthPercentage = 0.9; // Default 90% of visual width
+    let hitboxHeightPercentage = 0.9; // Default 90% of visual height
+    
+    // Make train hitboxes much smaller to help prevent train overlaps
+    if (this.type === ObstacleType.TRAIN) {
+      hitboxWidthPercentage = 0.7; // Only 70% of visual width for trains
+      hitboxHeightPercentage = 0.8; // 80% of visual height
+    } else if (this.type === ObstacleType.HORSE) {
+      hitboxWidthPercentage = 0.8; // 80% of visual width for horses
+    }
+    
+    const hitboxWidth = this.width * hitboxWidthPercentage;
+    const hitboxHeight = this.height * hitboxHeightPercentage;
     
     return {
       x: this.x - hitboxWidth / 2,
