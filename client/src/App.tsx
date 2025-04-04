@@ -1,29 +1,12 @@
-import { useState, useEffect } from 'react';
-import Game from './game/Game';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
+import Game from './game/Game';
 
 function App() {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    // Set the document title
-    document.title = 'High Noon Hustle';
-    
-    // Simulate loading resources
-    setTimeout(() => {
-      setLoaded(true);
-    }, 500);
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="w-full h-full flex items-center justify-center bg-background">
-        {!loaded ? (
-          <div className="text-foreground">Loading...</div>
-        ) : (
-          <Game />
-        )}
+      <div className="w-screen h-screen overflow-hidden">
+        <Game />
       </div>
     </QueryClientProvider>
   );
