@@ -14,11 +14,9 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 }) => {
   return (
     <div 
-      className="absolute inset-0 flex items-center justify-center"
+      className="game-over-screen" 
       style={{
         backgroundImage: 'url(/assets/EndBackground.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
       }}
     >
       {/* Semi-transparent overlay to improve text legibility */}

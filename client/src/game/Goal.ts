@@ -53,8 +53,15 @@ export class Goal {
         this.p.ellipse(this.x, this.y + yOffset, this.width * 1.2, this.height * 1.2);
       }
       
-      // Draw the money bag image
+      // Draw the money bag image with proper proportions
+      // The money bag is a square image, so we'll maintain that aspect ratio
       this.p.image(this.image, this.x, this.y + yOffset, this.width, this.height);
+      
+      // Visual indicator of collect area (for debugging, commented out)
+      // this.p.noFill();
+      // this.p.stroke(255, 0, 0);
+      // const hitboxWidth = this.width * 0.4; // Matches the hitbox in contains()
+      // this.p.rect(this.x, this.y + yOffset, hitboxWidth, this.height * 0.5);
       
     } else {
       // Fallback if image fails to load (similar to old version but with golden color)
@@ -83,7 +90,10 @@ export class Goal {
   }
   
   public contains(pointX: number): boolean {
-    return pointX > this.x - this.width / 2 && pointX < this.x + this.width / 2;
+    // Make the collection hitbox smaller (only 40% of visual width instead of 100%)
+    // This makes the player need to be more precise to collect money bags
+    const hitboxWidth = this.width * 0.4;
+    return pointX > this.x - hitboxWidth / 2 && pointX < this.x + hitboxWidth / 2;
   }
   
   public isReached(): boolean {
