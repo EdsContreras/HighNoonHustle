@@ -252,6 +252,21 @@ export class Lane {
   public checkCollisions(playerRect: { x: number; y: number; width: number; height: number }) {
     const collisions = [];
     
+    // First, check if player is actually in this lane
+    // Calculate player center Y coordinate
+    const playerCenterY = playerRect.y + playerRect.height / 2;
+    
+    // Check if player center is within the lane's vertical bounds
+    // Use half the lane height for the check
+    const laneTop = this.y - this.height / 2;
+    const laneBottom = this.y + this.height / 2;
+    
+    // If player is not in this lane, don't check for collisions
+    if (playerCenterY < laneTop || playerCenterY > laneBottom) {
+      return collisions; // Empty array - no collisions
+    }
+    
+    // Player is in this lane, check for obstacle collisions
     for (const obstacle of this.obstacles) {
       // The obstacle's getRect() already returns a reduced hitbox (90% of visual size)
       const obstacleRect = obstacle.getRect();
@@ -271,6 +286,7 @@ export class Lane {
             obstacleRect,
             playerRect,
             laneY: this.y,
+            inLane: true, // Now we know the player is in this lane
             overlap: {
               left: Math.max(0, playerRect.x + playerRect.width - obstacleRect.x),
               right: Math.max(0, obstacleRect.x + obstacleRect.width - playerRect.x),
