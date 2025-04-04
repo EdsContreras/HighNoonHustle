@@ -21,10 +21,6 @@ export class Player {
   private lastMoveTime: number;
   private moving: boolean;
   private image: p5.Image | null;
-  private isInvincible: boolean = false;
-  private invincibilityStartTime: number = 0;
-  private invincibilityDuration: number = 2000; // 2 seconds of invincibility
-  private flashInterval: number = 150; // Flash every 150ms
 
   constructor(
     p: p5,
@@ -68,53 +64,23 @@ export class Player {
     const distX = targetX - currentX;
     const distY = targetY - currentY;
 
-    // Check if actually need to move or already at destination
-    if (Math.abs(distX) <= 0.01 && Math.abs(distY) <= 0.01) {
-      // Already at target position, make sure coordinates are exact
-      this.x = this.targetX;
-      this.y = this.targetY;
-      this.moving = false;
-    } else {
-      // Use the configurable move speed constant for smoother movement
+    // Use the configurable move speed constant for smoother movement
+    if (Math.abs(distX) > 0.01 || Math.abs(distY) > 0.01) {
       // Apply the movement speed - higher value = faster movement
       this.x += distX * PLAYER_MOVE_SPEED;
       this.y += distY * PLAYER_MOVE_SPEED;
       this.moving = true;
-      
-      // Prevent overshooting by snapping to target if we're very close
-      if (Math.abs(this.x - this.targetX) <= 0.01) {
-        this.x = this.targetX;
-      }
-      if (Math.abs(this.y - this.targetY) <= 0.01) {
-        this.y = this.targetY;
-      }
-    }
-    
-    // Check if invincibility has expired
-    if (this.isInvincible) {
-      const currentTime = this.p.millis();
-      if (currentTime - this.invincibilityStartTime > this.invincibilityDuration) {
-        this.isInvincible = false;
-        console.log("Player invincibility ended");
-      }
+    } else {
+      // Snap to target position when very close
+      this.x = this.targetX;
+      this.y = this.targetY;
+      this.moving = false;
     }
   }
 
   public draw() {
     const pixelX = this.x * this.cellWidth;
     const pixelY = this.y * this.cellHeight;
-
-    // Check if player should be visible during invincibility flashing
-    if (this.isInvincible) {
-      const currentTime = this.p.millis();
-      const flashTime = currentTime - this.invincibilityStartTime;
-      const shouldShow = Math.floor(flashTime / this.flashInterval) % 2 === 0;
-      
-      // Skip drawing if player should be invisible during this flash frame
-      if (!shouldShow) {
-        return;
-      }
-    }
 
     this.p.push();
     this.p.translate(pixelX + this.cellWidth / 2, pixelY + this.cellHeight / 2);
@@ -146,11 +112,6 @@ export class Player {
   }
 
   public handleKeyPress(keyCode: number) {
-    // Early exit if invalid key code
-    if (![KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D].includes(keyCode)) {
-      return false;
-    }
-
     const currentTime = this.p.millis();
 
     // Only check for cooldown, no longer block movement if already moving
@@ -167,7 +128,7 @@ export class Player {
     // This prevents player from queueing too many moves and losing control
     const distToTarget =
       Math.abs(this.x - this.targetX) + Math.abs(this.y - this.targetY);
-    if (distToTarget > 0.5) {
+    if (distToTarget > 1.0) {
       return false;
     }
 
@@ -239,15 +200,5 @@ export class Player {
       x: Math.round(this.x),
       y: Math.round(this.y),
     };
-  }
-  
-  public startInvincibility() {
-    this.isInvincible = true;
-    this.invincibilityStartTime = this.p.millis();
-    console.log("Player is now invincible for", this.invincibilityDuration, "ms");
-  }
-  
-  public isPlayerInvincible(): boolean {
-    return this.isInvincible;
   }
 }

@@ -173,9 +173,4 @@ export class Lane {
   public handleResize(newHeight: number) {
     this.height = newHeight;
   }
-  
-  // Getter for y position of the lane
-  public getY(): number {
-    return this.y;
-  }
 }
