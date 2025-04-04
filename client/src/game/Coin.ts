@@ -220,23 +220,12 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // Increase the effective size of the coin hitbox for easier collection
-    // Add 10% to the coin's hitbox size while keeping the visual size the same
-    const hitboxIncrease = 1.1;
+    // Increase hitbox size substantially for easier collection
+    const hitboxIncrease = 1.5; // 50% larger hitbox
     const coinHitboxWidth = this.width * hitboxIncrease;
     const coinHitboxHeight = this.height * hitboxIncrease;
     
-    // Calculate coin boundaries with the increased hitbox
-    const coinLeft = this.x - coinHitboxWidth / 2;
-    const coinRight = this.x + coinHitboxWidth / 2;
-    const coinTop = this.y - coinHitboxHeight / 2;
-    const coinBottom = this.y + coinHitboxHeight / 2;
-    
-    // Player rect is already top-left based so we don't need to adjust it
-    const playerRight = playerX + playerWidth;
-    const playerBottom = playerY + playerHeight;
-    
-    // Calculate center points for distance-based check
+    // Calculate centers
     const coinCenterX = this.x;
     const coinCenterY = this.y;
     const playerCenterX = playerX + playerWidth / 2;
@@ -246,18 +235,9 @@ export class Coin {
     const distanceX = Math.abs(coinCenterX - playerCenterX);
     const distanceY = Math.abs(coinCenterY - playerCenterY);
     
-    // Check for AABB collision with expanded hitbox
-    const isColliding = !(
-      playerX > coinRight || 
-      playerRight < coinLeft || 
-      playerY > coinBottom || 
-      playerBottom < coinTop
-    );
-    
-    // Also check distance between centers - if centers are very close, count as collision
-    // regardless of AABB check (helps with edge cases when moving fast)
-    const centerProximityThreshold = (this.width + playerWidth) / 3; // One-third of combined widths
-    const centersClose = distanceX < centerProximityThreshold && distanceY < centerProximityThreshold;
+    // Use a more generous radius-based detection
+    const collectionRadius = (coinHitboxWidth + playerWidth) / 2;
+    const shouldCollect = distanceX < collectionRadius && distanceY < collectionRadius;
     
     // Either standard collision or centers are very close
     const shouldCollect = isColliding || centersClose;
