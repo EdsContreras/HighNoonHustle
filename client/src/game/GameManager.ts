@@ -264,22 +264,29 @@ export class GameManager {
       for (let i = this.coins.length - 1; i >= 0; i--) {
         const coin = this.coins[i];
         
-        if (!coin.isCollected() && coin.contains(
-          playerRect.x, 
-          playerRect.y, 
-          playerRect.width, 
-          playerRect.height
-        )) {
-          // Collect the coin
-          coin.collect();
-          
-          // Add points for collecting coin
-          this.score += POINTS_FOR_COIN;
-          this.callbacks.updateScore(this.score);
-          
-          // Play success sound
-          const { playSuccess } = useAudio.getState();
-          playSuccess();
+        // Only check collision if coin hasn't been collected yet
+        if (!coin.isCollected()) {
+          // Note: We pass the player's rect coordinates exactly as they are
+          // since we've fixed the Coin.contains() method to handle rect coordinates correctly
+          if (coin.contains(
+            playerRect.x, 
+            playerRect.y, 
+            playerRect.width, 
+            playerRect.height
+          )) {
+            console.log("Collecting coin at", coin.getPosition());
+            
+            // Collect the coin
+            coin.collect();
+            
+            // Add points for collecting coin
+            this.score += POINTS_FOR_COIN;
+            this.callbacks.updateScore(this.score);
+            
+            // Play success sound
+            const { playSuccess } = useAudio.getState();
+            playSuccess();
+          }
         }
       }
     }
@@ -359,11 +366,9 @@ export class GameManager {
       moneyBag.draw();
     }
     
-    // Draw coins
+    // Draw coins (always draw all coins - the Coin class will determine if it should be visible)
     for (const coin of this.coins) {
-      if (!coin.isCollected()) {
-        coin.draw(this.cameraOffsetY);
-      }
+      coin.draw(this.cameraOffsetY);
     }
     
     // Draw player

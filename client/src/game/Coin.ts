@@ -163,6 +163,11 @@ export class Coin {
   }
   
   public draw(cameraOffsetY: number = 0) {
+    // If coin is collected and we're not animating, don't draw anything
+    if (this.collected && !this.collectAnimation) {
+      return;
+    }
+    
     // If we're showing the collection animation, update and draw the firework particles
     if (this.collectAnimation) {
       // Update firework particles
@@ -177,14 +182,13 @@ export class Coin {
       const animationDuration = this.p.millis() - this.collectAnimationStart;
       if (this.fireworks.length === 0 || animationDuration > 1000) {
         this.collectAnimation = false;
+        console.log("Coin collection animation complete");
       }
       
       return;
     }
     
-    // If coin is collected and animation is done, don't draw anything
-    if (this.collected) return;
-    
+    // Only reach here if coin is not collected or animation is still running
     this.p.push();
     
     // Apply camera offset for scrolling
@@ -216,23 +220,35 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // Simple collision detection
+    // Simple AABB collision detection
+    // Note: Unlike earlier code, playerX/Y are now the top-left corner of the player's rect
+    // not the center point
     const coinLeft = this.x - this.width / 2;
     const coinRight = this.x + this.width / 2;
     const coinTop = this.y - this.height / 2;
     const coinBottom = this.y + this.height / 2;
     
-    const playerLeft = playerX - playerWidth / 2;
-    const playerRight = playerX + playerWidth / 2;
-    const playerTop = playerY - playerHeight / 2;
-    const playerBottom = playerY + playerHeight / 2;
+    // Player rect is already top-left based so we don't need to adjust it
+    const playerRight = playerX + playerWidth;
+    const playerBottom = playerY + playerHeight;
     
-    return !(
-      playerLeft > coinRight || 
+    // Log the collision check for debugging
+    const isColliding = !(
+      playerX > coinRight || 
       playerRight < coinLeft || 
-      playerTop > coinBottom || 
+      playerY > coinBottom || 
       playerBottom < coinTop
     );
+    
+    if (isColliding) {
+      console.log("Coin collision detected!", {
+        coin: { x: this.x, y: this.y, width: this.width, height: this.height },
+        coinRect: { left: coinLeft, right: coinRight, top: coinTop, bottom: coinBottom },
+        playerRect: { left: playerX, right: playerRight, top: playerY, bottom: playerBottom }
+      });
+    }
+    
+    return isColliding;
   }
   
   public isCollected(): boolean {
