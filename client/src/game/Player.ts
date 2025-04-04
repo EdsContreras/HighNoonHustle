@@ -68,17 +68,26 @@ export class Player {
     const distX = targetX - currentX;
     const distY = targetY - currentY;
 
-    // Use the configurable move speed constant for smoother movement
-    if (Math.abs(distX) > 0.01 || Math.abs(distY) > 0.01) {
+    // Check if actually need to move or already at destination
+    if (Math.abs(distX) <= 0.01 && Math.abs(distY) <= 0.01) {
+      // Already at target position, make sure coordinates are exact
+      this.x = this.targetX;
+      this.y = this.targetY;
+      this.moving = false;
+    } else {
+      // Use the configurable move speed constant for smoother movement
       // Apply the movement speed - higher value = faster movement
       this.x += distX * PLAYER_MOVE_SPEED;
       this.y += distY * PLAYER_MOVE_SPEED;
       this.moving = true;
-    } else {
-      // Snap to target position when very close
-      this.x = this.targetX;
-      this.y = this.targetY;
-      this.moving = false;
+      
+      // Prevent overshooting by snapping to target if we're very close
+      if (Math.abs(this.x - this.targetX) <= 0.01) {
+        this.x = this.targetX;
+      }
+      if (Math.abs(this.y - this.targetY) <= 0.01) {
+        this.y = this.targetY;
+      }
     }
     
     // Check if invincibility has expired
@@ -137,6 +146,11 @@ export class Player {
   }
 
   public handleKeyPress(keyCode: number) {
+    // Early exit if invalid key code
+    if (![KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D].includes(keyCode)) {
+      return false;
+    }
+
     const currentTime = this.p.millis();
 
     // Only check for cooldown, no longer block movement if already moving
@@ -153,7 +167,7 @@ export class Player {
     // This prevents player from queueing too many moves and losing control
     const distToTarget =
       Math.abs(this.x - this.targetX) + Math.abs(this.y - this.targetY);
-    if (distToTarget > 1.0) {
+    if (distToTarget > 0.5) {
       return false;
     }
 

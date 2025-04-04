@@ -161,6 +161,15 @@ const Game = () => {
       // Check for held keys in the draw loop
       const checkKeys = () => {
         if (gameStateRef.current === 'playing') {
+          // Check if any movement key is pressed at all
+          const isAnyKeyPressed = [KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D]
+            .some(keyCode => keyStates[keyCode]);
+          
+          if (!isAnyKeyPressed) {
+            // No movement keys are pressed, don't trigger any movement
+            return;
+          }
+          
           // Check relevant keys
           [KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D].forEach(keyCode => {
             if (keyStates[keyCode]) {
