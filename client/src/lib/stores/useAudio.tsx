@@ -132,7 +132,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       // Clone the sound to allow overlapping playback
       const soundClone = gruntSound.cloneNode() as HTMLAudioElement;
-      soundClone.volume = 0.4;
+      soundClone.volume = 0.6; // Increase volume to make grunt more prominent
       soundClone.play().catch(error => {
         console.error("Grunt sound play prevented:", error);
       });
