@@ -27,6 +27,7 @@ interface GameCallbacks {
   onLevelComplete: (score: number) => void;
   onLifeLost: (livesRemaining: number) => void;
   updateScore: (score: number) => void;
+  onVictory: (finalScore: number) => void;
 }
 
 export class GameManager {
@@ -416,8 +417,18 @@ export class GameManager {
     this.score += timeBonus;
     this.callbacks.updateScore(this.score);
     
-    // Trigger level complete
-    this.callbacks.onLevelComplete(this.score);
+    // Check if this was the final level (level 3)
+    if (this.level === 3) {
+      console.log("Game victory! All levels completed!");
+      // Play success sound
+      const { playSuccess } = useAudio.getState();
+      playSuccess();
+      // Trigger victory screen
+      this.callbacks.onVictory(this.score);
+    } else {
+      // Trigger level complete for non-final levels
+      this.callbacks.onLevelComplete(this.score);
+    }
   }
   
   public handleResize() {

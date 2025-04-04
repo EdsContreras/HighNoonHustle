@@ -95,7 +95,8 @@ export enum GameState {
   START = 'start',
   PLAYING = 'playing',
   LEVEL_COMPLETE = 'levelComplete',
-  GAME_OVER = 'gameOver'
+  GAME_OVER = 'gameOver',
+  VICTORY = 'victory'
 }
 
 // Level data

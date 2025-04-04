@@ -4,17 +4,18 @@ import { GameManager } from './GameManager';
 import StartScreen from '../components/StartScreen';
 import GameOverScreen from '../components/GameOverScreen';
 import LevelCompleteScreen from '../components/LevelCompleteScreen';
+import VictoryScreen from '../components/VictoryScreen';
 import HUD from '../components/HUD';
 import { useAudio } from '../lib/stores/useAudio';
-import { KEYS, PLAYER_MOVE_COOLDOWN } from './constants';
+import { KEYS, PLAYER_MOVE_COOLDOWN, GameState } from './constants';
 
 // Game component that manages the p5.js sketch
 const Game = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
   const gameManagerRef = useRef<GameManager | null>(null);
-  const gameStateRef = useRef<'start' | 'playing' | 'gameOver' | 'levelComplete'>('start');
-  const [gameState, setGameState] = useState<'start' | 'playing' | 'gameOver' | 'levelComplete'>('start');
+  const gameStateRef = useRef<'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory'>('start');
+  const [gameState, setGameState] = useState<'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory'>('start');
   const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -78,6 +79,11 @@ const Game = () => {
         },
         updateScore: (newScore: number) => {
           setScore(newScore);
+        },
+        onVictory: (finalScore: number) => {
+          console.log("Victory! Game completed with score:", finalScore);
+          setScore(finalScore);
+          setGameState('victory');
         }
       });
       
@@ -270,6 +276,10 @@ const Game = () => {
         
         {gameState === 'playing' && (
           <HUD score={score} level={currentLevel} lives={lives} />
+        )}
+
+        {gameState === 'victory' && (
+          <VictoryScreen finalScore={score} onRestart={restartGame} />
         )}
       </div>
     </div>
