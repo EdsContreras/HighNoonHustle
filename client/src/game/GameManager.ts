@@ -289,8 +289,8 @@ export class GameManager {
       }
     }
     
-    // Check for coin collisions
-    if (this.player && !this.player.isMoving()) {
+    // Check for coin collisions - always check, even when moving
+    if (this.player) {
       const playerRect = this.player.getRect();
       
       for (let i = this.coins.length - 1; i >= 0; i--) {
@@ -306,7 +306,7 @@ export class GameManager {
             playerRect.width, 
             playerRect.height
           )) {
-            console.log("Collecting coin at", coin.getPosition());
+            console.log("Collecting coin at", coin.getPosition(), "player moving:", this.player.isMoving());
             
             // Collect the coin
             coin.collect();

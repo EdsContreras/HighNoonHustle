@@ -238,7 +238,8 @@ export class Coin {
     const isBottomAreaCoin = this.y > 300;
     
     // Use a larger glow for bottom area coins to match their larger hitbox
-    const glowExpandFactor = isBottomAreaCoin ? 1.35 : 1.20; // 35% for bottom coins vs 20% for top coins
+    // Updated to match the new expanded hitbox values
+    const glowExpandFactor = isBottomAreaCoin ? 1.5 : 1.35; // Updated to match collision detection
     
     // Draw the glow circle - matches the expanded hitbox
     this.p.noStroke();
@@ -280,9 +281,10 @@ export class Coin {
     // Screen is typically 600 pixels tall, lower half would be y > 300
     const isBottomAreaCoin = this.y > 300;
     
+    // INCREASED HITBOX SIZES: Make coin collection more reliable
     // Use a larger hitbox for bottom area coins to make them easier to collect
     // Upper coins are already easier to collect due to camera position and attention focus
-    const expandFactor = isBottomAreaCoin ? 1.35 : 1.20; // 35% expansion for bottom coins vs 20% for upper coins
+    const expandFactor = isBottomAreaCoin ? 1.5 : 1.35; // Increased from 1.35/1.20 to 1.5/1.35
     
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
@@ -315,7 +317,8 @@ export class Coin {
     const dy = Math.abs(playerCenterY - this.y);
     
     // For bottom coins, use a larger collection threshold
-    const centerProximityFactor = isBottomAreaCoin ? 0.45 : 0.35; // 45% for bottom coins vs 35% for upper coins
+    // Increased thresholds for more reliable collection
+    const centerProximityFactor = isBottomAreaCoin ? 0.5 : 0.4; // Increased from 0.45/0.35 to 0.5/0.4
     
     // Set threshold for collection based on combined dimensions and location
     const collectionThresholdX = (this.width + playerWidth) * centerProximityFactor;
@@ -334,24 +337,25 @@ export class Coin {
     
     // Calculate minimum required overlap (as a percentage of coin area)
     const coinArea = this.width * this.height;
-    // Require less overlap for bottom coins (10% vs 15% for upper coins)
-    const overlapRequirement = isBottomAreaCoin ? 0.10 : 0.15; 
+    // Further reduced overlap requirements for easier collection
+    // Reduced from 10%/15% to 5%/10% - only need minimal overlap to collect
+    const overlapRequirement = isBottomAreaCoin ? 0.05 : 0.10; 
     const minRequiredOverlap = coinArea * overlapRequirement;
     
     // Check if overlap is substantial
     const hasSubstantialOverlap = overlapArea > minRequiredOverlap;
     
-    // SPECIAL METHOD 4: Pure proximity check for bottom coins only
-    // This helps with the perspective issue where bottom coins can be harder to visually line up with
-    let proximityCheck = false;
+    // SPECIAL METHOD 4: Pure proximity check for all coins
+    // Originally only for bottom coins, now for all coins with different thresholds
     
-    if (isBottomAreaCoin) {
-      // Simple distance check from player center to coin center
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      // Allow collection if player is within 75% of combined radius
-      const maxDistance = (this.width + playerWidth + this.height + playerHeight) * 0.20;
-      proximityCheck = distance < maxDistance;
-    }
+    // Simple distance check from player center to coin center
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Allow collection if player is within a generous distance threshold
+    // More generous for bottom coins (25%) vs upper coins (20%)
+    const distanceFactor = isBottomAreaCoin ? 0.25 : 0.20;
+    const maxDistance = (this.width + playerWidth + this.height + playerHeight) * distanceFactor;
+    const proximityCheck = distance < maxDistance;
     
     // Combine all methods - need to pass at least one test
     // Include special proximity check for bottom coins
