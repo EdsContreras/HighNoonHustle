@@ -9,7 +9,7 @@ import {
   VISIBLE_CELLS_Y,
   STARTING_LIVES,
   POINTS_FOR_CROSSING,
-  POINTS_FOR_GOAL,
+  POINTS_FOR_MONEYBAG,
   POINTS_FOR_COIN,
   COIN_WIDTH,
   COIN_HEIGHT,
@@ -261,36 +261,39 @@ export class GameManager {
       }
     }
     
-    // Check if player reached a goal
+    // Check if player reached a money bag
     const playerPos = this.player.getGridPosition();
     if (playerPos.y === 0) {
-      let reachedGoal = false;
+      let reachedMoneyBag = false;
       
       for (const goal of this.goals) {
         if (!goal.isReached() && goal.contains(playerPos.x * this.cellWidth + this.cellWidth / 2)) {
           goal.setReached(true);
-          this.score += POINTS_FOR_GOAL;
+          this.score += POINTS_FOR_MONEYBAG;
           this.callbacks.updateScore(this.score);
+          
+          // Log collection
+          console.log("Money bag collected! Getting rich, pardner!");
           
           // Play success sound
           const { playSuccess } = useAudio.getState();
           playSuccess();
           
-          reachedGoal = true;
+          reachedMoneyBag = true;
           break;
         }
       }
       
-      if (reachedGoal) {
+      if (reachedMoneyBag) {
         // Reset player position to starting position (45% from bottom)
         this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
       } else if (!this.player.isMoving()) {
-        // Player reached top but not in a goal, reset position to starting position
+        // Player reached top but not in a money bag, reset position to starting position
         this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
       }
     }
     
-    // Check if level is complete (all goals reached)
+    // Check if level is complete (all money bags collected)
     if (this.goals.every(goal => goal.isReached())) {
       this.handleLevelComplete();
     }
@@ -321,9 +324,9 @@ export class GameManager {
       lane.draw(this.p.width);
     }
     
-    // Draw goals
-    for (const goal of this.goals) {
-      goal.draw();
+    // Draw money bags
+    for (const moneyBag of this.goals) {
+      moneyBag.draw();
     }
     
     // Draw coins

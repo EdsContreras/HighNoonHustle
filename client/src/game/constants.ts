@@ -16,7 +16,7 @@ export const PLAYER_MOVE_SPEED = 0.3; // movement speed (0.0-1.0, higher = faste
 // Game mechanics
 export const STARTING_LIVES = 3;
 export const POINTS_FOR_CROSSING = 100;
-export const POINTS_FOR_GOAL = 500;
+export const POINTS_FOR_MONEYBAG = 500; // Points for reaching a money bag
 export const POINTS_FOR_COIN = 500; // Increased 10x from original 50
 export const TIME_BONUS_FACTOR = 10;
 
@@ -72,7 +72,7 @@ export const COLORS = {
   SAFE_ZONE: '#c2b280', // lighter sand
   ROAD: '#a67c52', // dirt road
   RIVER: '#4a74a8', // water
-  GOAL: '#8fb36a', // grass
+  MONEYBAG: '#daa520', // golden color
   TEXT: '#543a1c', // dark brown
   SCORE: '#543a1c',
   LIVES: '#8c2f20' // reddish brown
