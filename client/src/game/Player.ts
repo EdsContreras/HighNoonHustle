@@ -88,13 +88,18 @@ export class Player {
       this.y += moveY;
       this.moving = true;
       
-      // Smoother snap threshold
+      // Improved snap threshold - if we're close enough to the target, 
+      // snap directly to it to prevent floating point imprecision issues
       if (totalDist < 0.05) {
         this.x = this.targetX;
         this.y = this.targetY;
         this.moving = false;
+        // Log completion of move
+        console.log("Player reached target position:", this.x, this.y);
       }
     } else {
+      // If we're already at the target (or very close), make sure we're exactly at
+      // the target position and mark as not moving
       this.x = this.targetX;
       this.y = this.targetY;
       this.moving = false;

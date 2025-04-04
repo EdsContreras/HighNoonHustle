@@ -162,24 +162,26 @@ const Game = () => {
         return false; // prevent default browser behavior
       };
       
-      // Check for held keys in the draw loop
+      // We'll change from continuous key handling to single-press key handling
+      // to fix the issue with movement continuing after a key press
+      const keyPressed: Record<number, boolean> = {}; // Track which keys were already handled
+      
+      // Check for keys that were just pressed
       const checkKeys = () => {
         if (gameStateRef.current === 'playing') {
-          // Check relevant keys
+          // Only process keys that are pressed (true in keyStates) and haven't been handled yet
           [KEYS.UP, KEYS.DOWN, KEYS.LEFT, KEYS.RIGHT, KEYS.W, KEYS.A, KEYS.S, KEYS.D].forEach(keyCode => {
-            if (keyStates[keyCode]) {
-              // Use the full cooldown for held keys to prevent movement queuing issues
-              const now = p.millis();
-              if (!lastKeyHandled[keyCode] || now - lastKeyHandled[keyCode] > PLAYER_MOVE_COOLDOWN) {
-                // Only attempt to move if game manager accepts the movement
-                const moved = gameManager.handleKeyPress(keyCode);
-                if (moved) {
-                  lastKeyHandled[keyCode] = now;
-                }
-              }
-            } else {
-              // Reset the last handled time when key is released
-              // This helps with responsive movement after releasing and pressing again
+            // Only handle the key if it's pressed and hasn't been handled before
+            if (keyStates[keyCode] && !keyPressed[keyCode]) {
+              // Mark this key as handled to prevent continuous movement
+              keyPressed[keyCode] = true;
+              
+              // Try to move the player
+              gameManager.handleKeyPress(keyCode);
+            } 
+            // If key is released, reset its handled state
+            else if (!keyStates[keyCode]) {
+              keyPressed[keyCode] = false;
               delete lastKeyHandled[keyCode];
             }
           });
