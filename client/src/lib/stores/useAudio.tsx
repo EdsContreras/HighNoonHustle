@@ -96,10 +96,11 @@ export const useAudio = create<AudioState>((set, get) => ({
         return;
       }
       
-      // Clone the sound to allow overlapping playback
-      const soundClone = hitSound.cloneNode() as HTMLAudioElement;
-      soundClone.volume = 0.3;
-      soundClone.play().catch(error => {
+      // Use same pattern as other sounds that work correctly
+      hitSound.currentTime = 0;
+      hitSound.volume = 0.8; // Make it a bit louder
+      console.log("Playing hit sound");
+      hitSound.play().catch(error => {
         console.error("Hit sound play prevented:", error);
       });
     }
@@ -115,6 +116,8 @@ export const useAudio = create<AudioState>((set, get) => ({
       }
       
       successSound.currentTime = 0;
+      successSound.volume = 0.8; // Make it a bit louder
+      console.log("Playing success sound");
       successSound.play().catch(error => {
         console.error("Success sound play prevented:", error);
       });
@@ -130,33 +133,14 @@ export const useAudio = create<AudioState>((set, get) => ({
         return;
       }
       
-      // Clone the sound to allow overlapping playback
-      const soundClone = gruntSound.cloneNode() as HTMLAudioElement;
-      soundClone.volume = 1.0; // Maximum volume to ensure it's clearly audible
-      
-      // Log right before we play (for debugging)
-      console.log("PLAYING GRUNT SOUND NOW!", {
-        src: gruntSound.src,
-        volume: soundClone.volume,
-        muted: soundClone.muted
+      // This is the EXACT same implementation as playGameOver
+      // which we know works correctly
+      gruntSound.currentTime = 0;
+      gruntSound.volume = 1.0; // Maximum volume
+      console.log("Playing grunt sound exactly like game over sound");
+      gruntSound.play().catch(error => {
+        console.error("Grunt sound play prevented:", error);
       });
-      
-      // Set a short timeout to make sure the sound plays
-      setTimeout(() => {
-        soundClone.play().catch(error => {
-          console.error("Grunt sound play prevented:", error);
-          
-          // Try an alternative approach if the first one fails
-          try {
-            console.log("Trying alternate grunt sound play method...");
-            const newSound = new Audio(gruntSound.src);
-            newSound.volume = 1.0;
-            newSound.play();
-          } catch (fallbackError) {
-            console.error("Fallback grunt sound also failed:", fallbackError);
-          }
-        });
-      }, 10);
     }
   },
   

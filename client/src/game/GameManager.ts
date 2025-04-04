@@ -449,52 +449,10 @@ export class GameManager {
       hasHitSound: !!audioState.hitSound
     });
     
-    // SOUND HANDLING - Try multiple approaches to ensure sound plays
-    
-    // 1. First try using a list of potential paths for direct loading
-    const paths = [
-      '/assets/sounds/grunt.mp3',
-      './assets/sounds/grunt.mp3',
-      '/client/public/assets/sounds/grunt.mp3',
-      '/assets/sounds/grunt_new.mp3',
-      './assets/sounds/grunt_new.mp3',
-      '/client/public/assets/sounds/grunt_new.mp3',
-      '/client/assets/sounds/grunt.mp3',
-      window.location.origin + '/assets/sounds/grunt.mp3'
-    ];
-    
-    let soundPlayed = false;
-    
-    // Try each path
-    for (const path of paths) {
-      if (soundPlayed) break;
-      
-      try {
-        console.log(`DIRECT SOUND ATTEMPT: Trying to play grunt from path: ${path}`);
-        const sound = new Audio(path);
-        sound.volume = 1.0;
-        
-        const promise = sound.play();
-        if (promise !== undefined) {
-          promise.then(() => {
-            console.log(`SUCCESS: Direct sound played from ${path}`);
-            soundPlayed = true;
-          }).catch(err => {
-            console.warn(`FAILED: Direct sound from ${path} failed:`, err);
-          });
-        }
-      } catch (err) {
-        console.warn(`ERROR: Could not create Audio for ${path}:`, err);
-      }
-    }
-    
-    // 2. As a fallback, try the stored audio
-    setTimeout(() => {
-      if (!soundPlayed) {
-        console.log("Falling back to audio store grunt sound");
-        audioState.playGrunt();
-      }
-    }, 50);
+    // Simply play the grunt sound - use the same approach as gameOver
+    // which is known to work correctly
+    console.log("Playing grunt sound on collision");
+    audioState.playGrunt();
     
     this.lives--;
     this.callbacks.onLifeLost(this.lives);
