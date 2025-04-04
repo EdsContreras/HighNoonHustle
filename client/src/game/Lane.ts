@@ -1,6 +1,6 @@
 import p5 from 'p5';
 import { Obstacle } from './Obstacle';
-import { ObstacleType, COLORS, INITIAL_OBSTACLE_SPEED, SPEED_INCREMENT_PER_LEVEL, MAX_OBSTACLE_SPEED } from './constants';
+import { ObstacleType, COLORS, INITIAL_OBSTACLE_SPEED, SPEED_INCREMENT_PER_LEVEL, MAX_OBSTACLE_SPEED, OBSTACLE_PROPERTIES } from './constants';
 
 export class Lane {
   private p: p5;
@@ -49,12 +49,53 @@ export class Lane {
     
     // Calculate number of obstacles to fit across the screen
     const obstacleSpeed = this.calculateObstacleSpeed();
-    const spacing = obstacleSpeed * interval;
+    const baseSpacing = obstacleSpeed * interval;
     
-    // Place obstacles at regular intervals
-    for (let x = 0; x < width + spacing; x += spacing * 1.5) {
-      this.createObstacle(x - Math.random() * spacing);
+    // Use a minimum spacing to prevent overlap
+    const minSpacing = this.getMinimumSpacing();
+    const spacing = Math.max(baseSpacing, minSpacing * 1.5); // Ensure at least 1.5x the obstacle width
+    
+    // Place obstacles at regular intervals with some randomization but no overlap
+    let x = this.direction > 0 ? -50 : width + 50; // Start offscreen
+    
+    while (x > -200 && x < width + 200) { // Extend beyond screen to ensure proper coverage
+      // Determine position with some randomness
+      const position = x + (Math.random() * 0.3 * spacing) * (Math.random() > 0.5 ? 1 : -1);
+      
+      // Create obstacle if it won't overlap
+      if (!this.wouldOverlap(position)) {
+        this.createObstacle(position);
+      }
+      
+      // Move to next position
+      x += spacing;
     }
+  }
+  
+  // Get the minimum spacing based on obstacle width
+  private getMinimumSpacing(): number {
+    if (!this.obstacleType) return 100;
+    return OBSTACLE_PROPERTIES[this.obstacleType].width * 1.2; // 20% buffer between obstacles
+  }
+  
+  // Check if a new obstacle at position x would overlap with existing obstacles
+  private wouldOverlap(x: number): boolean {
+    if (!this.obstacleType) return false;
+    
+    const newObstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
+    const buffer = newObstacleWidth * 0.2; // 20% buffer
+    
+    // Check against all existing obstacles
+    for (const obstacle of this.obstacles) {
+      const distance = Math.abs(obstacle.x - x);
+      const minDistance = (obstacle.width + newObstacleWidth) / 2 + buffer;
+      
+      if (distance < minDistance) {
+        return true; // Would overlap
+      }
+    }
+    
+    return false; // No overlap detected
   }
   
   private calculateObstacleSpeed(): number {
@@ -74,9 +115,13 @@ export class Lane {
     
     if (timeSinceLastObstacle > obstacleInterval) {
       if (this.obstacleType) {
-        this.createObstacle(this.direction > 0 ? -50 : width + 50);
+        const newX = this.direction > 0 ? -50 : width + 50;
+        // Only create obstacle if it won't overlap with existing ones near the spawn point
+        if (!this.wouldOverlap(newX)) {
+          this.createObstacle(newX);
+          this.lastObstacleTime = currentTime;
+        }
       }
-      this.lastObstacleTime = currentTime;
     }
     
     // Update obstacles
