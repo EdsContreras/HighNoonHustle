@@ -227,6 +227,24 @@ export class Coin {
     // Simple hover animation
     const hoverOffset = this.p.sin(this.p.frameCount * 0.05 + this.animationOffset) * 5;
     
+    // Add a subtle "glow" around the coin to indicate its hitbox
+    // This helps players see where they need to be to collect it
+    const pulseIntensity = (
+      0.3 + // Base opacity of 30%
+      0.1 * this.p.sin(this.p.frameCount * 0.08) // Pulsing effect +/- 10%
+    );
+    
+    // Draw the subtle glow circle - matches the actual hitbox size
+    this.p.noStroke();
+    this.p.fill(255, 215, 0, 60 * pulseIntensity); // Gold with pulsing transparency
+    this.p.ellipseMode(this.p.CENTER);
+    this.p.ellipse(
+      this.x, 
+      screenY + hoverOffset, 
+      this.width * 1.02, // Match the actual hitbox size we defined in contains()
+      this.height * 1.02
+    );
+    
     // Draw the coin with animation
     if (this.image) {
       this.p.imageMode(this.p.CENTER);
@@ -250,8 +268,9 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // Expand the coin hitbox slightly to make it more forgiving (110% of original size)
-    const expandFactor = 1.1;
+    // Use a more restrictive hitbox - only slightly larger than the coin's actual size
+    // Reduced from 110% to 102% - now player must be much closer to the coin
+    const expandFactor = 1.02; 
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
     
@@ -261,44 +280,54 @@ export class Coin {
     const coinTop = this.y - expandedHeight / 2;
     const coinBottom = this.y + expandedHeight / 2;
     
-    // Player rect is already top-left based so we don't need to adjust it
-    const playerRight = playerX + playerWidth;
-    const playerBottom = playerY + playerHeight;
-    
-    // Check AABB collision with expanded hitbox
-    const isColliding = !(
-      playerX > coinRight || 
-      playerRight < coinLeft || 
-      playerY > coinBottom || 
-      playerBottom < coinTop
-    );
-    
-    // Alternative collision check: centers are close enough
+    // Calculate player center for a more accurate collision test
     const playerCenterX = playerX + playerWidth / 2;
     const playerCenterY = playerY + playerHeight / 2;
-    const distanceX = Math.abs(playerCenterX - this.x);
-    const distanceY = Math.abs(playerCenterY - this.y);
     
-    // Consider centers close if they're within 75% of sum of half-widths/heights
-    const centersClose = 
-      distanceX < (expandedWidth + playerWidth) * 0.375 && 
-      distanceY < (expandedHeight + playerHeight) * 0.375;
+    // Adjust player hitbox to be smaller than visual size (80% of actual size)
+    // This ensures player needs to be visibly touching the coin
+    const playerHitboxWidth = playerWidth * 0.8;
+    const playerHitboxHeight = playerHeight * 0.8;
     
-    // Coins are collected if either test passes
-    const shouldCollect = isColliding || centersClose;
+    // Calculate player hitbox with adjusted size (centered on player)
+    const playerHitboxLeft = playerCenterX - playerHitboxWidth / 2;
+    const playerHitboxRight = playerCenterX + playerHitboxWidth / 2;
+    const playerHitboxTop = playerCenterY - playerHitboxHeight / 2;
+    const playerHitboxBottom = playerCenterY + playerHitboxHeight / 2;
     
-    if (shouldCollect) {
-      console.log("Coin collision detected!", {
+    // Check precise AABB collision with adjusted hitboxes
+    const isColliding = !(
+      playerHitboxLeft > coinRight || 
+      playerHitboxRight < coinLeft || 
+      playerHitboxTop > coinBottom || 
+      playerHitboxBottom < coinTop
+    );
+    
+    // Remove the center-based distance check - require actual overlap
+    // This prevents collection when player is "near" but not on the coin
+    
+    if (isColliding) {
+      // Log the actual collision data for debugging
+      console.log("Coin collection - precise collision detected!", {
         coin: { x: this.x, y: this.y, width: this.width, height: this.height },
         expanded: { width: expandedWidth, height: expandedHeight },
         coinRect: { left: coinLeft, right: coinRight, top: coinTop, bottom: coinBottom },
-        playerRect: { left: playerX, right: playerRight, top: playerY, bottom: playerBottom },
-        centersClose: centersClose,
-        distance: { x: distanceX, y: distanceY }
+        playerHitbox: { 
+          left: playerHitboxLeft, 
+          right: playerHitboxRight, 
+          top: playerHitboxTop, 
+          bottom: playerHitboxBottom 
+        },
+        playerVisual: { 
+          left: playerX, 
+          right: playerX + playerWidth, 
+          top: playerY, 
+          bottom: playerY + playerHeight 
+        }
       });
     }
     
-    return shouldCollect;
+    return isColliding;
   }
   
   public isCollected(): boolean {
