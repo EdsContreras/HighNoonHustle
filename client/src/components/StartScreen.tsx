@@ -21,19 +21,19 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
       
       <Card className="relative w-[90%] max-w-md border-2 border-amber-800 bg-black/50 text-white shadow-2xl z-10">
         <CardContent className="pt-6 text-center">
-          <h1 className="text-4xl font-bold mb-2 text-amber-500">Western Frogger</h1>
+          <h1 className="text-4xl font-bold mb-2 text-amber-500">High Noon Hustle</h1>
           <p className="mb-4 text-amber-200">
-            Help your cowboy navigate through the dangerous wild west. Avoid obstacles and reach the goals!
+            Collect money bags, dodge wild west obstacles, and escape the sheriff across 5 thrilling levels. You've got 3 lives—use them wisely!
           </p>
 
           <div className="mb-6 text-left bg-black/40 border border-amber-800 p-4 rounded-lg">
             <h2 className="text-xl font-bold mb-2 text-amber-300">How to Play:</h2>
             <ul className="list-disc pl-5 text-amber-200">
               <li>Use arrow keys or WASD to move your cowboy</li>
-              <li>Avoid horses, trains, and tumbleweeds</li>
-              <li>Collect gold coins for extra points</li>
-              <li>Reach the green goal areas at the top</li>
-              <li>Complete levels by filling all goals</li>
+              <li>Dodge horses, trains, and wild west obstacles</li>
+              <li>Collect money bags for extra points</li>
+              <li>Escape the sheriff by reaching the safe zones</li>
+              <li>Complete all 5 thrilling levels to win</li>
             </ul>
           </div>
         </CardContent>

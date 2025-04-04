@@ -7,6 +7,9 @@ function App() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    // Set the document title
+    document.title = 'High Noon Hustle';
+    
     // Simulate loading resources
     setTimeout(() => {
       setLoaded(true);
