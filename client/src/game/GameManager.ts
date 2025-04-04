@@ -455,9 +455,16 @@ export class GameManager {
     audioState.playGrunt();
     
     this.lives--;
+    
+    // Ensure lives never go below 0
+    if (this.lives < 0) {
+      this.lives = 0;
+    }
+    
     this.callbacks.onLifeLost(this.lives);
     
     if (this.lives <= 0) {
+      console.log("No lives remaining, triggering game over");
       this.handleGameOver();
     } else {
       // Instead of resetting position, make player invincible for 2 seconds

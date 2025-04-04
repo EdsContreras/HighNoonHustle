@@ -19,7 +19,7 @@ const HUD: React.FC<HUDProps> = ({ score, level, lives }) => {
       </div>
 
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-2 flex items-center">
-        {[...Array(lives)].map((_, i) => (
+        {[...Array(Math.max(0, lives))].map((_, i) => (
           <HeartCrack key={i} className="h-5 w-5 text-red-500 mx-0.5" />
         ))}
       </div>
