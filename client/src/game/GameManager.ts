@@ -466,14 +466,26 @@ export class GameManager {
   }
   
   private handleGameOver() {
-    // Play game over sound
+    // Stop background music
+    useAudio.getState().stopBackgroundMusic();
+    
+    // Play game over sound effects
     const audioState = useAudio.getState();
     console.log("Audio state during game over:", {
       isMuted: audioState.isMuted,
-      hasGameOverSound: !!audioState.gameOverSound
+      hasGameOverSound: !!audioState.gameOverSound,
+      hasWompWompSound: !!audioState.wompWompSound
     });
+    
+    // Play game over sound
     audioState.playGameOver();
     
+    // After a short delay, play the womp womp trumpet sound for comic effect
+    setTimeout(() => {
+      audioState.playWompWomp();
+    }, 600);
+    
+    // Notify game
     this.callbacks.onGameOver();
   }
   

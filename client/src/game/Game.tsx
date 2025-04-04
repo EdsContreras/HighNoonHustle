@@ -26,7 +26,8 @@ const Game = () => {
     setHitSound, 
     setSuccessSound,
     setGruntSound,
-    setGameOverSound, 
+    setGameOverSound,
+    setWompWompSound,
     toggleMute, 
     backgroundMusic 
   } = useAudio();
@@ -136,9 +137,10 @@ const Game = () => {
       tryLoadAudio('hit.mp3', 0.5),
       tryLoadAudio('success.mp3', 0.5),
       tryLoadAudio('grunt.mp3', 0.4),
-      tryLoadAudio('gameover.mp3', 0.5)
+      tryLoadAudio('gameover.mp3', 0.5),
+      tryLoadAudio('wompwomp.mp3', 0.6)
     ]).then(results => {
-      const [bgMusicLoaded, hitSfx, successSfx, gruntSfx, gameOverSfx] = results;
+      const [bgMusicLoaded, hitSfx, successSfx, gruntSfx, gameOverSfx, wompWompSfx] = results;
       console.log("All audio files loaded (or attempted to load)");
       
       // Set properties
@@ -151,6 +153,7 @@ const Game = () => {
       setSuccessSound(successSfx);
       setGruntSound(gruntSfx);
       setGameOverSound(gameOverSfx);
+      setWompWompSound(wompWompSfx);
       
       console.log("Audio initialization complete");
     }).catch(error => {
@@ -164,7 +167,7 @@ const Game = () => {
         bgMusic.currentTime = 0;
       }
     };
-  }, [setBackgroundMusic, setHitSound, setSuccessSound, setGruntSound, setGameOverSound]);
+  }, [setBackgroundMusic, setHitSound, setSuccessSound, setGruntSound, setGameOverSound, setWompWompSound]);
 
   // Initialize p5.js sketch
   useEffect(() => {

@@ -6,6 +6,7 @@ interface AudioState {
   successSound: HTMLAudioElement | null;
   gruntSound: HTMLAudioElement | null;
   gameOverSound: HTMLAudioElement | null;
+  wompWompSound: HTMLAudioElement | null;
   isMuted: boolean;
   
   // Setter functions
@@ -14,6 +15,7 @@ interface AudioState {
   setSuccessSound: (sound: HTMLAudioElement) => void;
   setGruntSound: (sound: HTMLAudioElement) => void;
   setGameOverSound: (sound: HTMLAudioElement) => void;
+  setWompWompSound: (sound: HTMLAudioElement) => void;
   
   // Control functions
   toggleMute: () => void;
@@ -21,6 +23,7 @@ interface AudioState {
   playSuccess: () => void;
   playGrunt: () => void;
   playGameOver: () => void;
+  playWompWomp: () => void;
   playBackgroundMusic: () => void;
   stopBackgroundMusic: () => void;
 }
@@ -31,6 +34,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   successSound: null,
   gruntSound: null,
   gameOverSound: null,
+  wompWompSound: null,
   isMuted: false, // We want to hear sounds by default
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
@@ -38,6 +42,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   setSuccessSound: (sound) => set({ successSound: sound }),
   setGruntSound: (sound) => set({ gruntSound: sound }),
   setGameOverSound: (sound) => set({ gameOverSound: sound }),
+  setWompWompSound: (sound) => set({ wompWompSound: sound }),
   
   toggleMute: () => {
     const { isMuted, backgroundMusic } = get();
@@ -146,6 +151,23 @@ export const useAudio = create<AudioState>((set, get) => ({
       gameOverSound.currentTime = 0;
       gameOverSound.play().catch(error => {
         console.error("Game over sound play prevented:", error);
+      });
+    }
+  },
+  
+  playWompWomp: () => {
+    const { wompWompSound, isMuted } = get();
+    if (wompWompSound) {
+      // If sound is muted, don't play anything
+      if (isMuted) {
+        console.log("Womp womp sound skipped (muted)");
+        return;
+      }
+      
+      wompWompSound.currentTime = 0;
+      wompWompSound.volume = 0.6; // Slightly louder for comic effect
+      wompWompSound.play().catch(error => {
+        console.error("Womp womp sound play prevented:", error);
       });
     }
   }
