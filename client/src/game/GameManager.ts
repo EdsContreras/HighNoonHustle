@@ -452,11 +452,11 @@ export class GameManager {
     // First play the impact/hit sound
     audioState.playHit();
     
-    // Then after a very short delay, play the grunt sound 
+    // Then after a short delay, play the grunt sound 
     // for better audio layering and to emphasize the character's reaction
     setTimeout(() => {
       audioState.playGrunt();
-    }, 150);
+    }, 250); // Increased delay to make the sounds more distinct
     
     this.lives--;
     this.callbacks.onLifeLost(this.lives);
