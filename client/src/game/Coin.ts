@@ -136,20 +136,22 @@ export class Coin {
   
   private createFireworkEffect() {
     // Create more particles for a more impressive firework effect
-    const particleCount = 50; // Doubled for more dramatic effect
+    const particleCount = 100; // Doubled again for even more particles
     
     // Create the main explosion particles
     for (let i = 0; i < particleCount; i++) {
-      this.fireworks.push(new FireworkParticle(this.p, this.x, this.y));
+      const particle = new FireworkParticle(this.p, this.x, this.y);
+      particle.size *= 1.5; // Make particles 50% larger
+      this.fireworks.push(particle);
     }
     
-    // Add a few larger "spark" particles
-    for (let i = 0; i < 10; i++) {
+    // Add more larger "spark" particles
+    for (let i = 0; i < 20; i++) {
       const spark = new FireworkParticle(this.p, this.x, this.y);
       // Override with larger, slower-moving particles
-      spark.size = this.p.random(6, 10);
-      spark.vx *= 0.7;
-      spark.vy *= 0.7;
+      spark.size = this.p.random(12, 18);
+      spark.vx *= 0.8;
+      spark.vy *= 0.8;
       this.fireworks.push(spark);
     }
     
