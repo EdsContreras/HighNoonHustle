@@ -131,38 +131,9 @@ const Game = () => {
     
     let bgMusic: HTMLAudioElement;
     
-    // Try more locations for grunt_new.mp3
-    const checkFilePath = async () => {
-      // Try direct path first
-      const filePath = '/client/public/assets/sounds/grunt_new.mp3';
-      console.log(`Checking if ${filePath} exists directly...`);
-      try {
-        const response = await fetch(filePath, { method: 'HEAD' });
-        if (response.ok) {
-          console.log(`File exists at ${filePath}!`);
-          return true;
-        } else {
-          console.log(`File doesn't exist at ${filePath} - status ${response.status}`);
-          return false;
-        }
-      } catch (error) {
-        console.error(`Error checking file at ${filePath}:`, error);
-        return false;
-      }
-    };
+    // We'll only use standard audio files
 
-    // Call the check
-    checkFilePath();
-
-    // Create grunt_new directly
-    let gruntNewSound: HTMLAudioElement | null = null;
-    try {
-      gruntNewSound = new Audio('/client/public/assets/sounds/grunt_new.mp3');
-      gruntNewSound.volume = 1.0;
-      console.log("Created grunt_new sound directly");
-    } catch (error) {
-      console.error("Failed to create grunt_new sound directly:", error);
-    }
+    // We'll use the standard grunt.mp3 which is working fine
 
     // Load all audio files with the robust method
     Promise.all([
@@ -184,8 +155,8 @@ const Game = () => {
       setBackgroundMusic(bgMusicLoaded);
       setHitSound(hitSfx);
       setSuccessSound(successSfx);
-      // Use our direct grunt_new sound if it loaded, otherwise fall back to the loaded grunt
-      setGruntSound(gruntNewSound || gruntSfx);
+      // Just use the regular grunt sound
+      setGruntSound(gruntSfx);
       setGameOverSound(gameOverSfx);
       setWompWompSound(wompWompSfx);
       
