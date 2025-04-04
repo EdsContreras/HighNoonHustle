@@ -207,12 +207,13 @@ export class GameManager {
       const goalY = laneHeight / 2; // Top of the screen
       
       // Pass the current level to the Goal constructor
+      // Double the height of the end zone (money bags)
       this.goals.push(new Goal(
         this.p, 
         goalX, 
         goalY, 
         goalWidth * 0.8, 
-        laneHeight * 0.8,
+        laneHeight * 1.6, // Doubled from 0.8 to 1.6
         this.level // Pass the current level
       ));
     }

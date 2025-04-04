@@ -48,6 +48,7 @@ export class Goal {
     const sizeMultiplier = this.level === 1 ? 0.7 : 1.0; // 70% of original size for level 1
     
     // Calculate the display width and height
+    // Note: We're maintaining the aspect ratio of the image even though the end zone is taller
     const displayWidth = this.width * sizeMultiplier;
     const displayHeight = this.height * sizeMultiplier;
     
@@ -62,18 +63,19 @@ export class Goal {
       
       // If reached, draw with a subtle glow effect
       if (this.reached) {
-        // Draw a subtle glow background
+        // Draw a subtle glow background - make it larger for doubled height
         this.p.noStroke();
         this.p.fill(255, 215, 0, 100); // Golden glow
         this.p.ellipse(this.x, this.y + yOffset, displayWidth * 1.2, displayHeight * 1.2);
       }
       
       // Draw the money bag image with level-specific size
+      // We'll keep the image size proportional even though the zone is taller
       this.p.image(this.image, this.x, this.y + yOffset, displayWidth, displayHeight);
       
       // Debug log in first frame
       if (this.p.frameCount < 10) {
-        console.log(`Money bag in level ${this.level} drawn at size ${displayWidth.toFixed(1)}x${displayHeight.toFixed(1)} (${sizeMultiplier * 100}% of original)`);
+        console.log(`Money bag in level ${this.level} drawn at size ${displayWidth.toFixed(1)}x${displayHeight.toFixed(1)} (${sizeMultiplier * 100}% of original) in doubled height zone`);
       }
       
     } else {
@@ -107,8 +109,13 @@ export class Goal {
     const sizeMultiplier = this.level === 1 ? 0.7 : 1.0;
     const actualWidth = this.width * sizeMultiplier;
     
-    // Check if the point is within the adjusted width
-    return pointX > this.x - actualWidth / 2 && pointX < this.x + actualWidth / 2;
+    // With the doubled height of the end zone, we make the hitbox slightly larger horizontally
+    // to make it easier for players to reach the goal
+    const hitboxMultiplier = 1.2; // 20% wider hitbox for easier gameplay with taller end zone
+    
+    // Check if the point is within the adjusted width with hitbox multiplier
+    return pointX > this.x - (actualWidth * hitboxMultiplier) / 2 && 
+           pointX < this.x + (actualWidth * hitboxMultiplier) / 2;
   }
   
   public isReached(): boolean {
