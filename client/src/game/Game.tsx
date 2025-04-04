@@ -3,6 +3,7 @@ import p5 from 'p5';
 import { GameManager } from './GameManager';
 import StartScreen from '../components/StartScreen';
 import GameOverScreen from '../components/GameOverScreen';
+import LevelCompleteScreen from '../components/LevelCompleteScreen';
 import HUD from '../components/HUD';
 import { useAudio } from '../lib/stores/useAudio';
 import { KEYS, PLAYER_MOVE_COOLDOWN } from './constants';
@@ -12,8 +13,8 @@ const Game = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
   const gameManagerRef = useRef<GameManager | null>(null);
-  const gameStateRef = useRef<'start' | 'playing' | 'gameOver'>('start');
-  const [gameState, setGameState] = useState<'start' | 'playing' | 'gameOver'>('start');
+  const gameStateRef = useRef<'start' | 'playing' | 'gameOver' | 'levelComplete'>('start');
+  const [gameState, setGameState] = useState<'start' | 'playing' | 'gameOver' | 'levelComplete'>('start');
   const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -229,7 +230,11 @@ const Game = () => {
     setGameState('playing');
   };
 
-  // Removed continueToNextLevel function - we're using infinite scrolling now
+  const continueToNextLevel = () => {
+    console.log("Continuing to next level");
+    setCurrentLevel(prev => prev + 1);
+    setGameState('playing');
+  };
 
   const restartGame = () => {
     console.log("Restarting game");
@@ -257,7 +262,13 @@ const Game = () => {
           <GameOverScreen score={score} onRestart={restartGame} />
         )}
         
-        {/* Removed level complete screen - we're using infinite scrolling mode */}
+        {gameState === 'levelComplete' && (
+          <LevelCompleteScreen 
+            level={currentLevel} 
+            score={score} 
+            onContinue={continueToNextLevel} 
+          />
+        )}
         
         {gameState === 'playing' && (
           <HUD score={score} level={currentLevel} lives={lives} />

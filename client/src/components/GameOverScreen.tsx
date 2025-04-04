@@ -19,17 +19,17 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
           <div className="flex justify-center mb-2">
             <Skull className="h-16 w-16 text-destructive" />
           </div>
-          <h1 className="text-4xl font-bold mb-2">End of the Trail</h1>
-          <p className="text-lg mb-4">Your endless journey through the wild west has come to an end!</p>
+          <h1 className="text-4xl font-bold mb-2">Game Over Scrub</h1>
+          <p className="text-lg mb-4">You got trampled in the wild west!</p>
 
           <div className="bg-muted p-4 rounded-lg mb-6">
             <h2 className="text-xl font-semibold mb-2">Final Score</h2>
             <p className="text-3xl font-bold">{score}</p>
-            <p className="text-sm mt-2">How far can you make it next time?</p>
           </div>
 
           <p className="text-muted-foreground italic">
-            "The trail goes on forever, and the party never ends. Saddle up cowboy, and try again!"
+            "It ain't about how hard ya hit. It's about how hard you can get hit
+            and keep moving forward."
           </p>
         </CardContent>
 

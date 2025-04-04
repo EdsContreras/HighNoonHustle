@@ -13,17 +13,16 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         <CardContent className="pt-6 text-center">
           <h1 className="text-4xl font-bold mb-4">Western Frogger</h1>
           <p className="mb-6">
-            Help your cowboy navigate through the endless dangers of the wild west! See how far you can go in this infinite scrolling adventure.
+            Help your cowboy navigate through the dangerous wild west. Avoid obstacles and reach the goals!
           </p>
 
           <div className="mb-6 text-left">
             <h2 className="text-xl font-bold mb-2">How to Play:</h2>
             <ul className="list-disc pl-5">
               <li>Use arrow keys or WASD to move your cowboy</li>
-              <li>Avoid horses, trains, and tumbleweeds</li>
-              <li>Collect gold coins for extra points</li>
-              <li>Travel as far as possible until you run out of lives</li>
-              <li>The game gets more difficult the farther you go!</li>
+              <li>Avoid horses, stagecoaches, and tumbleweeds</li>
+              <li>Reach the green goal areas at the top</li>
+              <li>Complete levels by filling all goals</li>
             </ul>
           </div>
         </CardContent>

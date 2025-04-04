@@ -47,7 +47,6 @@ export class GameManager {
   private backgroundImage: p5.Image | null;
   private cameraOffsetY: number; // Camera offset for scrolling
   private targetCameraY: number; // Target camera position for smooth transitions
-  private farthestPosition: number; // Track the farthest the player has traveled (lower y value = farther)
   
   constructor(p: p5, callbacks: GameCallbacks) {
     this.p = p;
@@ -66,7 +65,6 @@ export class GameManager {
     this.backgroundImage = null;
     this.cameraOffsetY = 0;
     this.targetCameraY = 0; // Initialize target camera position
-    this.farthestPosition = 1000; // Initialize with a high value (player starts at bottom)
     
     this.loadAssets();
   }
@@ -110,7 +108,6 @@ export class GameManager {
     this.coins = [];
     this.cameraOffsetY = 0; // Reset camera position
     this.targetCameraY = 0; // Reset target camera position
-    this.farthestPosition = 1000; // Reset farthest position
     
     // Calculate grid
     this.calculateGrid();
@@ -128,75 +125,43 @@ export class GameManager {
     this.generateGameContent();
   }
   
-  // Generate infinite scrolling game content
+  // Generate game content (lanes, obstacles, coins, goals) based on current difficulty
   private generateGameContent() {
-    // Use a template from the most difficult level design for more variety
+    // Use a template from the most difficult level design
     const templateIndex = Math.min(3, Math.floor(this.difficulty));
     const levelConfig = LEVELS[templateIndex] || LEVELS[1];
     
-    // Create a very large number of lanes so the player can move forward "forever"
-    // Instead of goals at the top, we'll have an endless pattern of lanes
-    const totalLanes = 1000; // Very large number of lanes for "infinite" scrolling
+    // Create lanes
     const laneHeight = this.cellHeight;
-    
-    const lanePatterns = levelConfig.lanes;
-    const patternLength = lanePatterns.length;
-    
-    // Create a starting safe zone
-    const startLane = new Lane(
-      this.p,
-      (totalLanes - 1) * laneHeight + laneHeight / 2,
-      'safe',
-      1,
-      undefined,
-      0,
-      Math.floor(this.difficulty),
-      this.cellHeight
-    );
-    
-    this.lanes.push(startLane);
-    
-    // Generate the infinite lane pattern going upward (lower y values)
-    for (let i = 0; i < totalLanes - 1; i++) {
-      // Get lane config from pattern (cycling through the pattern)
-      const laneConfigIndex = i % patternLength;
-      let laneConfig = {...lanePatterns[laneConfigIndex]};
-      
-      // For extreme distances, increase difficulty
-      const distanceFactor = 1 + Math.floor(i / patternLength) * 0.1;
-      const effectiveDifficulty = this.difficulty * distanceFactor;
-      
-      // Calculate y position (going up from bottom)
-      const laneY = (totalLanes - 2 - i) * laneHeight + laneHeight / 2;
+    for (let i = 0; i < levelConfig.lanes.length; i++) {
+      let laneConfig = {...levelConfig.lanes[i]};
+      const laneY = i * laneHeight + laneHeight / 2;
       
       // Increase obstacle frequency based on difficulty
       if (laneConfig.obstacleFrequency) {
         // Gradually increase frequency based on difficulty (max 100% increase)
-        const difficultyFactor = Math.min(2, 1 + (effectiveDifficulty - 1) * 0.2);
+        const difficultyFactor = Math.min(2, 1 + (this.difficulty - 1) * 0.2);
         laneConfig.obstacleFrequency *= difficultyFactor;
       }
-      
-      // Randomly flip direction for more variety as you go higher
-      const directionFlip = Math.random() > 0.5 ? -1 : 1;
-      const direction = laneConfig.direction === 'right' ? directionFlip : -directionFlip;
       
       const lane = new Lane(
         this.p,
         laneY,
         laneConfig.type,
-        direction,
+        laneConfig.direction === 'right' ? 1 : -1,
         laneConfig.obstacleType,
         laneConfig.obstacleFrequency || 0,
-        Math.floor(effectiveDifficulty), // Use scaled difficulty for speed calculation
+        Math.floor(this.difficulty), // Use difficulty as level for speed calculation
         this.cellHeight
       );
       
       this.lanes.push(lane);
       
       // Add coins to safe zones (with some randomness)
-      if (laneConfig.type === 'safe' && i % 3 === 0) { // Distribute coins more evenly
+      if (laneConfig.type === 'safe' && i > 0 && i < levelConfig.lanes.length - 1) {
+        // Don't add coins to the start or end zones
         // More coins at higher difficulties (up to 2x the base amount)
-        const maxCoins = Math.floor(COINS_PER_LANE * Math.min(2, 1 + (effectiveDifficulty - 1) * 0.2));
+        const maxCoins = Math.floor(COINS_PER_LANE * Math.min(2, 1 + (this.difficulty - 1) * 0.2));
         const coinsForLane = Math.floor(Math.random() * (maxCoins + 1));
         
         for (let j = 0; j < coinsForLane; j++) {
@@ -208,7 +173,19 @@ export class GameManager {
       }
     }
     
-    console.log(`Generated infinite scrolling content with initial difficulty ${this.difficulty}`);
+    // Create goals - number of goals depends on difficulty
+    const baseGoalCount = 3;
+    const goalCount = Math.min(5, baseGoalCount + Math.floor((this.difficulty - 1) / 2));
+    const goalWidth = this.p.width / goalCount;
+    
+    for (let i = 0; i < goalCount; i++) {
+      const goalX = i * goalWidth + goalWidth / 2;
+      const goalY = laneHeight / 2; // Top of the screen
+      
+      this.goals.push(new Goal(this.p, goalX, goalY, goalWidth * 0.8, laneHeight * 0.8));
+    }
+    
+    console.log(`Generated game content with difficulty ${this.difficulty}, ${this.goals.length} goals`);
   }
   
   // Camera smoothing factor controls how quickly the camera follows the player
@@ -298,28 +275,35 @@ export class GameManager {
       }
     }
     
-    // Instead of goals, award points for distance traveled
+    // Check if player reached a goal
     const playerPos = this.player.getGridPosition();
-    
-    // Track the highest position (smallest y value) the player has reached
-    if (playerPos.y < this.farthestPosition) {
-      // Award bonus points for reaching a new farthest position
-      const newPositionsReached = this.farthestPosition - playerPos.y;
-      this.score += POINTS_FOR_CROSSING * newPositionsReached;
-      this.callbacks.updateScore(this.score);
+    if (playerPos.y === 0) {
+      let reachedGoal = false;
       
-      // Update the farthest position
-      this.farthestPosition = playerPos.y;
-      
-      // Every 10 rows forward, increase difficulty and play success sound
-      if (newPositionsReached >= 10) {
-        this.difficulty += 0.2;
-        console.log(`Distance milestone reached! Difficulty increased to ${this.difficulty}`);
-        
-        // Play success sound
-        const { playSuccess } = useAudio.getState();
-        playSuccess();
+      for (const goal of this.goals) {
+        if (!goal.isReached() && goal.contains(playerPos.x * this.cellWidth + this.cellWidth / 2)) {
+          goal.setReached(true);
+          this.score += POINTS_FOR_GOAL;
+          this.callbacks.updateScore(this.score);
+          
+          // Play success sound
+          const { playSuccess } = useAudio.getState();
+          playSuccess();
+          
+          reachedGoal = true;
+          break;
+        }
       }
+      
+      // Always reset player when they reach top of screen
+      if (this.player) {
+        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
+      }
+    }
+    
+    // Check if all goals reached - increase difficulty and regenerate level
+    if (this.goals.every(goal => goal.isReached())) {
+      this.handleAllGoalsReached();
     }
     
     // Gradually increase difficulty over time
@@ -354,13 +338,10 @@ export class GameManager {
       lane.draw(this.p.width);
     }
     
-    // We're not using goals in infinite mode, so we don't need to draw them
-    // But we'll keep the code commented out in case we need it later
-    /*
+    // Draw goals
     for (const goal of this.goals) {
       goal.draw();
     }
-    */
     
     // Draw coins
     for (const coin of this.coins) {
