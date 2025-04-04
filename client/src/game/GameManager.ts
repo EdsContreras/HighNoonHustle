@@ -108,6 +108,15 @@ export class GameManager {
     this.levelStartTime = this.p.millis();
     this.levelTimeLimit = levelConfig.timeLimit * 1000; // Convert to milliseconds
     
+    // Reset lives and score when level is 1 (new game)
+    if (level === 1) {
+      this.lives = STARTING_LIVES;
+      this.score = 0;
+      // Also update the UI
+      this.callbacks.onLifeLost(this.lives);
+      this.callbacks.updateScore(this.score);
+    }
+    
     // Calculate grid
     this.calculateGrid();
     
