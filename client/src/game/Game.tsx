@@ -72,30 +72,59 @@ const Game = () => {
       '/client/public'
     ];
     
+    // Try multiple directory patterns
+    const dirOptions = [
+      '/assets/sounds/',
+      '/sounds/'
+    ];
+    
     console.log("Trying multiple base URL options for audio:", baseUrlOptions);
     
-    // Function to try loading audio from multiple base URLs
+    // Function to try loading audio from multiple base URLs and directories
     const tryLoadAudio = async (filename: string, volume: number = 0.5): Promise<HTMLAudioElement> => {
-      // Try each base URL in order
+      // Try each base URL and directory combination
       for (const baseUrl of baseUrlOptions) {
-        const fullPath = `${baseUrl}/assets/sounds/${filename}`;
-        console.log(`Attempting to load audio from: ${fullPath}`);
-        try {
-          // First test if we can load it
-          const success = await testLoadAudio(fullPath);
-          if (success) {
-            console.log(`Successfully loaded audio from: ${fullPath}`);
-            const audio = new Audio(fullPath);
-            audio.volume = volume;
-            return audio;
+        for (const dir of dirOptions) {
+          const fullPath = `${baseUrl}${dir}${filename}`;
+          console.log(`Attempting to load audio from: ${fullPath}`);
+          try {
+            // First test if we can load it
+            const success = await testLoadAudio(fullPath);
+            if (success) {
+              console.log(`Successfully loaded audio from: ${fullPath}`);
+              const audio = new Audio(fullPath);
+              audio.volume = volume;
+              return audio;
+            }
+          } catch (error) {
+            console.warn(`Failed to load audio from ${fullPath}:`, error);
           }
-        } catch (error) {
-          console.warn(`Failed to load audio from ${fullPath}:`, error);
         }
       }
       
-      // If we get here, we couldn't load from any path, create a dummy audio element
+      // If we get here, we couldn't load from any path
       console.error(`Failed to load audio file ${filename} from any path`);
+      
+      // Use hit.mp3 as a fallback for most sounds since we know it works
+      if (filename !== 'hit.mp3' && filename !== 'background.mp3') {
+        try {
+          console.log(`Trying to use hit.mp3 as fallback for ${filename}`);
+          for (const baseUrl of baseUrlOptions) {
+            const fallbackPath = `${baseUrl}/assets/sounds/hit.mp3`;
+            const success = await testLoadAudio(fallbackPath);
+            if (success) {
+              console.log(`Using fallback audio from: ${fallbackPath} for ${filename}`);
+              const audio = new Audio(fallbackPath);
+              audio.volume = volume;
+              return audio;
+            }
+          }
+        } catch (error) {
+          console.error(`Fallback also failed:`, error);
+        }
+      }
+      
+      // Last resort - create dummy audio element
       return new Audio();
     };
     
