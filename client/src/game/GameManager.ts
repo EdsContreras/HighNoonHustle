@@ -108,14 +108,25 @@ export class GameManager {
     this.levelStartTime = this.p.millis();
     this.levelTimeLimit = levelConfig.timeLimit * 1000; // Convert to milliseconds
     
-    // Reset lives and score when level is 1 (new game)
+    // Reset lives based on level number
     if (level === 1) {
+      // Level 1: Start with default lives (3)
       this.lives = STARTING_LIVES;
       this.score = 0;
-      // Also update the UI
-      this.callbacks.onLifeLost(this.lives);
-      this.callbacks.updateScore(this.score);
+      console.log("Starting level 1 with", this.lives, "lives");
+    } else if (level === 2) {
+      // Level 2: Always start with 4 lives regardless of previous level
+      this.lives = 4;
+      console.log("Starting level 2 with", this.lives, "lives");
+    } else if (level === 3) {
+      // Level 3: Always start with 5 lives regardless of previous level
+      this.lives = 5;
+      console.log("Starting level 3 with", this.lives, "lives");
     }
+    
+    // Update the UI
+    this.callbacks.onLifeLost(this.lives);
+    this.callbacks.updateScore(this.score);
     
     // Calculate grid
     this.calculateGrid();
