@@ -31,6 +31,10 @@ export class Goal {
   private async loadAssets() {
     try {
       this.image = await loadImage(this.p, '/assets/moneybag.png');
+      
+      // Debug log the creation of this money bag with size info
+      const sizeMultiplier = this.level === 1 ? 0.7 : 1.0;
+      console.log(`Money bag created for Level ${this.level} with size multiplier: ${sizeMultiplier} (${this.width}x${this.height})`);
     } catch (error) {
       console.error('Failed to load money bag image:', error);
     }
