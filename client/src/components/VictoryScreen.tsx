@@ -6,11 +6,13 @@ import { PartyPopper, Trophy } from 'lucide-react';
 interface VictoryScreenProps {
   finalScore: number;
   onRestart: () => void;
+  showLeaderboard: () => void;
 }
 
 const VictoryScreen: React.FC<VictoryScreenProps> = ({ 
   finalScore, 
-  onRestart 
+  onRestart,
+  showLeaderboard
 }) => {
   return (
     <div 
@@ -49,13 +51,20 @@ const VictoryScreen: React.FC<VictoryScreenProps> = ({
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col gap-3 items-center">
           <Button 
             size="lg" 
             onClick={onRestart} 
             className="w-[200px] bg-amber-700 hover:bg-amber-600 text-white border border-amber-500"
           >
             Play Again
+          </Button>
+          <Button 
+            size="default" 
+            onClick={showLeaderboard} 
+            className="w-[200px] bg-amber-900 hover:bg-amber-800 text-white border border-amber-600"
+          >
+            View Leaderboard
           </Button>
         </CardFooter>
       </Card>

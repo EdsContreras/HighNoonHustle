@@ -6,11 +6,13 @@ import { Skull } from "lucide-react";
 interface GameOverScreenProps {
   score: number;
   onRestart: () => void;
+  showLeaderboard: () => void;
 }
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({
   score,
   onRestart,
+  showLeaderboard,
 }) => {
   return (
     <div 
@@ -43,13 +45,20 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col gap-3 items-center">
           <Button 
             size="lg" 
             onClick={onRestart} 
             className="w-[200px] bg-amber-700 hover:bg-amber-600 text-white border border-amber-500"
           >
             Try Again
+          </Button>
+          <Button 
+            size="default" 
+            onClick={showLeaderboard} 
+            className="w-[200px] bg-amber-900 hover:bg-amber-800 text-white border border-amber-600"
+          >
+            View Leaderboard
           </Button>
         </CardFooter>
       </Card>

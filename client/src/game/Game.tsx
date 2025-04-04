@@ -8,18 +8,26 @@ import VictoryScreen from '../components/VictoryScreen';
 import HUD from '../components/HUD';
 import { useAudio } from '../lib/stores/useAudio';
 import { KEYS, PLAYER_MOVE_COOLDOWN, GameState } from './constants';
+import HighScoreEntry from '../components/HighScoreEntry';
+import LeaderboardDisplay from '../components/LeaderboardDisplay';
+import { isHighScore } from '../lib/leaderboard';
+import '../styles/leaderboard.css';
 
 // Game component that manages the p5.js sketch
+// Extended game states to include high score and leaderboard
+type GameStateType = 'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory' | 'highScore' | 'leaderboard';
+
 const Game = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
   const gameManagerRef = useRef<GameManager | null>(null);
-  const gameStateRef = useRef<'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory'>('start');
-  const [gameState, setGameState] = useState<'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory'>('start');
+  const gameStateRef = useRef<GameStateType>('start');
+  const [gameState, setGameState] = useState<GameStateType>('start');
   const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showingLeaderboard, setShowingLeaderboard] = useState(false);
   
   const { 
     setBackgroundMusic, 
@@ -184,9 +192,24 @@ const Game = () => {
       console.log("Setting up p5 sketch");
       // Create a game manager
       const gameManager = new GameManager(p, {
-        onGameOver: () => {
+        onGameOver: async () => {
           console.log("Game over!");
-          setGameState('gameOver');
+          
+          // Check if the score qualifies for the leaderboard
+          try {
+            const qualifiesForHighScore = await isHighScore(score);
+            console.log("High score qualification check result:", qualifiesForHighScore);
+            if (qualifiesForHighScore === true) {
+              console.log("New high score! Showing entry screen");
+              setGameState('highScore');
+            } else {
+              setGameState('gameOver');
+            }
+          } catch (error) {
+            console.error("Error checking high score:", error);
+            // Default to game over in case of error
+            setGameState('gameOver');
+          }
         },
         onLevelComplete: (levelScore: number) => {
           console.log("Level complete!");
@@ -200,10 +223,25 @@ const Game = () => {
         updateScore: (newScore: number) => {
           setScore(newScore);
         },
-        onVictory: (finalScore: number) => {
+        onVictory: async (finalScore: number) => {
           console.log("Victory! Game completed with score:", finalScore);
           setScore(finalScore);
-          setGameState('victory');
+          
+          // Check if the score qualifies for the leaderboard
+          try {
+            const qualifiesForHighScore = await isHighScore(finalScore);
+            console.log("High score qualification check result:", qualifiesForHighScore);
+            if (qualifiesForHighScore === true) {
+              console.log("New high score! Showing entry screen");
+              setGameState('highScore');
+            } else {
+              setGameState('victory');
+            }
+          } catch (error) {
+            console.error("Error checking high score:", error);
+            // Default to victory screen in case of error
+            setGameState('victory');
+          }
         }
       });
       
@@ -378,6 +416,32 @@ const Game = () => {
     setCurrentLevel(1);
     setGameState('playing');
   };
+  
+  // Handle high score entry completion
+  const handleHighScoreEntryComplete = () => {
+    // If we came from victory screen, go back to victory
+    // Otherwise, go to game over
+    if (currentLevel >= 3) {
+      setGameState('victory');
+    } else {
+      setGameState('gameOver');
+    }
+  };
+  
+  // Show leaderboard
+  const showLeaderboard = () => {
+    setGameState('leaderboard');
+  };
+  
+  // Go back from leaderboard
+  const hideLeaderboard = () => {
+    // Go back to the previous state (victory or game over)
+    if (currentLevel >= 3) {
+      setGameState('victory');
+    } else {
+      setGameState('gameOver');
+    }
+  };
 
   return (
     <div className="w-full h-full flex flex-col relative">
@@ -394,7 +458,11 @@ const Game = () => {
         )}
         
         {gameState === 'gameOver' && (
-          <GameOverScreen score={score} onRestart={restartGame} />
+          <GameOverScreen 
+            score={score} 
+            onRestart={restartGame}
+            showLeaderboard={showLeaderboard}
+          />
         )}
         
         {gameState === 'levelComplete' && (
@@ -410,7 +478,23 @@ const Game = () => {
         )}
 
         {gameState === 'victory' && (
-          <VictoryScreen finalScore={score} onRestart={restartGame} />
+          <VictoryScreen 
+            finalScore={score} 
+            onRestart={restartGame}
+            showLeaderboard={showLeaderboard}
+          />
+        )}
+        
+        {gameState === 'highScore' && (
+          <HighScoreEntry 
+            score={score}
+            level={currentLevel}
+            onComplete={handleHighScoreEntryComplete}
+          />
+        )}
+        
+        {gameState === 'leaderboard' && (
+          <LeaderboardDisplay onBack={hideLeaderboard} />
         )}
       </div>
     </div>
