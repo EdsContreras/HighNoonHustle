@@ -37,36 +37,103 @@ const Game = () => {
     console.log("Game state ref updated to:", gameState);
   }, [gameState]);
 
+  // Helper function to test audio loading
+  const testLoadAudio = (path: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const audio = new Audio(path);
+      audio.addEventListener('canplaythrough', () => {
+        console.log(`Audio file loaded successfully: ${path}`);
+        resolve(true);
+      });
+      audio.addEventListener('error', (e) => {
+        console.error(`Error loading audio file: ${path}`, e);
+        resolve(false);
+      });
+      // Set a timeout in case the event never fires
+      setTimeout(() => {
+        if (!audio.readyState) {
+          console.warn(`Audio loading timed out: ${path}`);
+          resolve(false);
+        }
+      }, 3000);
+    });
+  };
+
   // Initialize audio
   useEffect(() => {
     console.log("Initializing audio...");
-    // Load sound effects
-    const bgMusic = new Audio('/sounds/background.mp3');
-    bgMusic.loop = true;
-    bgMusic.volume = 0.3;
-
-    const hitSfx = new Audio('/sounds/hit.mp3');
-    hitSfx.volume = 0.5;
-
-    const successSfx = new Audio('/sounds/success.mp3');
-    successSfx.volume = 0.5;
     
-    const gruntSfx = new Audio('/sounds/grunt.mp3');
-    gruntSfx.volume = 0.4;
+    // Try multiple base URL patterns for more robust loading
+    // First try the current origin, then try relative paths
+    const baseUrlOptions = [
+      window.location.origin,
+      '',
+      '.',
+      '/client/public'
+    ];
     
-    const gameOverSfx = new Audio('/sounds/gameover.mp3');
-    gameOverSfx.volume = 0.5;
-
-    setBackgroundMusic(bgMusic);
-    setHitSound(hitSfx);
-    setSuccessSound(successSfx);
-    setGruntSound(gruntSfx);
-    setGameOverSound(gameOverSfx);
-
+    console.log("Trying multiple base URL options for audio:", baseUrlOptions);
+    
+    // Function to try loading audio from multiple base URLs
+    const tryLoadAudio = async (filename: string, volume: number = 0.5): Promise<HTMLAudioElement> => {
+      // Try each base URL in order
+      for (const baseUrl of baseUrlOptions) {
+        const fullPath = `${baseUrl}/assets/sounds/${filename}`;
+        console.log(`Attempting to load audio from: ${fullPath}`);
+        try {
+          // First test if we can load it
+          const success = await testLoadAudio(fullPath);
+          if (success) {
+            console.log(`Successfully loaded audio from: ${fullPath}`);
+            const audio = new Audio(fullPath);
+            audio.volume = volume;
+            return audio;
+          }
+        } catch (error) {
+          console.warn(`Failed to load audio from ${fullPath}:`, error);
+        }
+      }
+      
+      // If we get here, we couldn't load from any path, create a dummy audio element
+      console.error(`Failed to load audio file ${filename} from any path`);
+      return new Audio();
+    };
+    
+    let bgMusic: HTMLAudioElement;
+    
+    // Load all audio files with the robust method
+    Promise.all([
+      tryLoadAudio('background.mp3', 0.3),
+      tryLoadAudio('hit.mp3', 0.5),
+      tryLoadAudio('success.mp3', 0.5),
+      tryLoadAudio('grunt.mp3', 0.4),
+      tryLoadAudio('gameover.mp3', 0.5)
+    ]).then(results => {
+      const [bgMusicLoaded, hitSfx, successSfx, gruntSfx, gameOverSfx] = results;
+      console.log("All audio files loaded (or attempted to load)");
+      
+      // Set properties
+      bgMusicLoaded.loop = true;
+      bgMusic = bgMusicLoaded;
+      
+      // Store in global state
+      setBackgroundMusic(bgMusicLoaded);
+      setHitSound(hitSfx);
+      setSuccessSound(successSfx);
+      setGruntSound(gruntSfx);
+      setGameOverSound(gameOverSfx);
+      
+      console.log("Audio initialization complete");
+    }).catch(error => {
+      console.error("Audio loading failed:", error);
+    });
+    
     // Clean up
     return () => {
-      bgMusic.pause();
-      bgMusic.currentTime = 0;
+      if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+      }
     };
   }, [setBackgroundMusic, setHitSound, setSuccessSound, setGruntSound, setGameOverSound]);
 
@@ -250,10 +317,12 @@ const Game = () => {
     // Get audio functions from store
     const audioStore = useAudio.getState();
     
-    // Unmute audio if needed
-    if (audioStore.isMuted) {
-      toggleMute();
-    }
+    // Log audio state for debugging
+    console.log("Audio state when starting game:", {
+      isMuted: audioStore.isMuted,
+      hasGruntSound: !!audioStore.gruntSound,
+      hasGameOverSound: !!audioStore.gameOverSound
+    });
     
     // Update game state to playing
     setGameState('playing');

@@ -442,9 +442,14 @@ export class GameManager {
     }
     
     // Play hit sound and grunt sound
-    const { playHit, playGrunt } = useAudio.getState();
-    playHit();
-    playGrunt(); // Play the grunt sound when player is hit
+    const audioState = useAudio.getState();
+    console.log("Audio state during collision:", {
+      isMuted: audioState.isMuted,
+      hasGruntSound: !!audioState.gruntSound,
+      hasHitSound: !!audioState.hitSound
+    });
+    audioState.playHit();
+    audioState.playGrunt(); // Play the grunt sound when player is hit
     
     this.lives--;
     this.callbacks.onLifeLost(this.lives);
@@ -462,8 +467,12 @@ export class GameManager {
   
   private handleGameOver() {
     // Play game over sound
-    const { playGameOver } = useAudio.getState();
-    playGameOver();
+    const audioState = useAudio.getState();
+    console.log("Audio state during game over:", {
+      isMuted: audioState.isMuted,
+      hasGameOverSound: !!audioState.gameOverSound
+    });
+    audioState.playGameOver();
     
     this.callbacks.onGameOver();
   }
