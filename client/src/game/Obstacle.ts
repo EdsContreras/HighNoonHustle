@@ -149,11 +149,15 @@ export class Obstacle {
   }
   
   public getRect() {
+    // Make the hitbox 90% of the visual size for more forgiving collisions
+    const hitboxWidth = this.width * 0.9;
+    const hitboxHeight = this.height * 0.9;
+    
     return {
-      x: this.x - this.width / 2,
-      y: this.y - this.height / 2,
-      width: this.width,
-      height: this.height
+      x: this.x - hitboxWidth / 2,
+      y: this.y - hitboxHeight / 2,
+      width: hitboxWidth,
+      height: hitboxHeight
     };
   }
   

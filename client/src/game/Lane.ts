@@ -137,32 +137,30 @@ export class Lane {
     const collisions = [];
     
     for (const obstacle of this.obstacles) {
+      // The obstacle's getRect() already returns a reduced hitbox (90% of visual size)
       const obstacleRect = obstacle.getRect();
       
-      // Apply a 10% reduction to obstacle collision size for more forgiving gameplay
-      const collisionMargin = 0.1;
-      const adjustedObstacleRect = {
-        x: obstacleRect.x + obstacleRect.width * collisionMargin / 2,
-        y: obstacleRect.y + obstacleRect.height * collisionMargin / 2,
-        width: obstacleRect.width * (1 - collisionMargin),
-        height: obstacleRect.height * (1 - collisionMargin)
-      };
-      
-      // Basic AABB collision detection with adjusted boundaries
+      // Basic AABB collision detection
       if (
-        playerRect.x < adjustedObstacleRect.x + adjustedObstacleRect.width &&
-        playerRect.x + playerRect.width > adjustedObstacleRect.x &&
-        playerRect.y < adjustedObstacleRect.y + adjustedObstacleRect.height &&
-        playerRect.y + playerRect.height > adjustedObstacleRect.y
+        playerRect.x < obstacleRect.x + obstacleRect.width &&
+        playerRect.x + playerRect.width > obstacleRect.x &&
+        playerRect.y < obstacleRect.y + obstacleRect.height &&
+        playerRect.y + playerRect.height > obstacleRect.y
       ) {
         // Only add deadly obstacles to collisions
         if (obstacle.isDeadly()) {
-          console.log("Obstacle collision details:", {
+          // Log detailed collision information for debugging
+          console.log("Collision detected!", {
             obstacleType: obstacle.type,
-            originalRect: obstacleRect,
-            adjustedRect: adjustedObstacleRect,
-            playerRect: playerRect,
-            laneY: this.y
+            obstacleRect,
+            playerRect,
+            laneY: this.y,
+            overlap: {
+              left: Math.max(0, playerRect.x + playerRect.width - obstacleRect.x),
+              right: Math.max(0, obstacleRect.x + obstacleRect.width - playerRect.x),
+              top: Math.max(0, playerRect.y + playerRect.height - obstacleRect.y),
+              bottom: Math.max(0, obstacleRect.y + obstacleRect.height - playerRect.y)
+            }
           });
           collisions.push(obstacle);
         }

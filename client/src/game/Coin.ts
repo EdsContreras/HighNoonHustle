@@ -6,57 +6,89 @@ class FireworkParticle {
   private p: p5;
   private x: number;
   private y: number;
-  private vx: number;
-  private vy: number;
+  public vx: number; // Made public so it can be modified in createFireworkEffect
+  public vy: number; // Made public so it can be modified in createFireworkEffect
   private alpha: number;
   private color: p5.Color;
-  private size: number;
+  public size: number; // Made public so it can be modified in createFireworkEffect
+  private trail: {x: number, y: number, alpha: number}[];
   
   constructor(p: p5, x: number, y: number) {
     this.p = p;
     this.x = x;
     this.y = y;
     
-    // Random velocity for the particle
+    // Random velocity for the particle - higher speeds for more dramatic effect
     const angle = p.random(0, p.TWO_PI);
-    const speed = p.random(0.5, 3);
+    const speed = p.random(2, 5);
     this.vx = p.cos(angle) * speed;
     this.vy = p.sin(angle) * speed;
     
     // Start fully opaque and fade out
     this.alpha = 255;
     
-    // Yellow/gold color variations for the firework
-    const colorVariation = p.random(20);
-    this.color = p.color(255, 215 - colorVariation, 0);
+    // Bright yellow color variations for more vibrant fireworks
+    const colorVariation = p.random(40);
+    this.color = p.color(255, 255 - colorVariation, 0);
     
     // Random size for the particle
-    this.size = p.random(2, 4);
+    this.size = p.random(3, 6);
+    
+    // Trail effect
+    this.trail = [];
   }
   
   update() {
+    // Add current position to trail with current alpha
+    this.trail.push({
+      x: this.x,
+      y: this.y,
+      alpha: this.alpha
+    });
+    
+    // Keep trail at a reasonable length
+    if (this.trail.length > 5) {
+      this.trail.shift();
+    }
+    
+    // Decrease alpha of all trail points
+    for (let i = 0; i < this.trail.length; i++) {
+      this.trail[i].alpha -= 15;
+    }
+    
     // Move the particle
     this.x += this.vx;
     this.y += this.vy;
     
     // Add a bit of gravity
-    this.vy += 0.05;
+    this.vy += 0.1;
     
-    // Fade out the particle
-    this.alpha -= 5;
+    // Fade out the particle faster
+    this.alpha -= 8;
     
     // Return true if the particle is still visible
     return this.alpha > 0;
   }
   
   draw(cameraOffsetY: number = 0) {
-    const screenY = this.y - cameraOffsetY;
-    
     this.p.push();
     this.p.noStroke();
+    
+    // Draw trail
+    for (const point of this.trail) {
+      const screenY = point.y - cameraOffsetY;
+      const trailColor = this.p.color(255, 255, 0, point.alpha * 0.5);
+      this.p.fill(trailColor);
+      const trailSize = this.size * 0.7;
+      this.p.ellipse(point.x, screenY, trailSize, trailSize);
+    }
+    
+    // Draw main particle
+    const screenY = this.y - cameraOffsetY;
     this.color.setAlpha(this.alpha);
     this.p.fill(this.color);
     this.p.ellipse(this.x, screenY, this.size, this.size);
+    
     this.p.pop();
   }
 }
@@ -99,12 +131,29 @@ export class Coin {
   }
   
   private createFireworkEffect() {
-    // Create multiple particles for the firework effect
-    for (let i = 0; i < 25; i++) {
+    // Create more particles for a more impressive firework effect
+    const particleCount = 50; // Doubled for more dramatic effect
+    
+    // Create the main explosion particles
+    for (let i = 0; i < particleCount; i++) {
       this.fireworks.push(new FireworkParticle(this.p, this.x, this.y));
     }
+    
+    // Add a few larger "spark" particles
+    for (let i = 0; i < 10; i++) {
+      const spark = new FireworkParticle(this.p, this.x, this.y);
+      // Override with larger, slower-moving particles
+      spark.size = this.p.random(6, 10);
+      spark.vx *= 0.7;
+      spark.vy *= 0.7;
+      this.fireworks.push(spark);
+    }
+    
     this.collectAnimation = true;
     this.collectAnimationStart = this.p.millis();
+    
+    // Log the collection for debugging
+    console.log("Coin collected! Firework effect created at", this.x, this.y);
   }
   
   public draw(cameraOffsetY: number = 0) {
