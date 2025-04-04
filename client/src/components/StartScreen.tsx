@@ -23,7 +23,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         <CardContent className="pt-6 text-center">
           <h1 className="text-4xl font-bold mb-2 text-amber-500">High Noon Hustle</h1>
           <p className="mb-4 text-amber-200">
-            Collect money bags, dodge wild west obstacles, and escape the sheriff across 5 thrilling levels. You've got 3 lives—use them wisely!
+            Collect money bags, dodge wild west obstacles, and escape the sheriff across 3 thrilling levels. You've got 3 lives—use them wisely!
           </p>
 
           <div className="mb-6 text-left bg-black/40 border border-amber-800 p-4 rounded-lg">
@@ -33,7 +33,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
               <li>Dodge horses, trains, and wild west obstacles</li>
               <li>Collect money bags for extra points</li>
               <li>Escape the sheriff by reaching the safe zones</li>
-              <li>Complete all 5 thrilling levels to win</li>
+              <li>Complete all 3 thrilling levels to win</li>
             </ul>
           </div>
         </CardContent>
