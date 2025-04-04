@@ -133,9 +133,30 @@ export const useAudio = create<AudioState>((set, get) => ({
       // Clone the sound to allow overlapping playback
       const soundClone = gruntSound.cloneNode() as HTMLAudioElement;
       soundClone.volume = 1.0; // Maximum volume to ensure it's clearly audible
-      soundClone.play().catch(error => {
-        console.error("Grunt sound play prevented:", error);
+      
+      // Log right before we play (for debugging)
+      console.log("PLAYING GRUNT SOUND NOW!", {
+        src: gruntSound.src,
+        volume: soundClone.volume,
+        muted: soundClone.muted
       });
+      
+      // Set a short timeout to make sure the sound plays
+      setTimeout(() => {
+        soundClone.play().catch(error => {
+          console.error("Grunt sound play prevented:", error);
+          
+          // Try an alternative approach if the first one fails
+          try {
+            console.log("Trying alternate grunt sound play method...");
+            const newSound = new Audio(gruntSound.src);
+            newSound.volume = 1.0;
+            newSound.play();
+          } catch (fallbackError) {
+            console.error("Fallback grunt sound also failed:", fallbackError);
+          }
+        });
+      }, 10);
     }
   },
   
