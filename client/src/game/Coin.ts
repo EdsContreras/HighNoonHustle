@@ -20,19 +20,23 @@ class FireworkParticle {
     
     // Random velocity for the particle - higher speeds for more dramatic effect
     const angle = p.random(0, p.TWO_PI);
-    const speed = p.random(2, 5);
+    const speed = p.random(4, 8); // Increased speed range
     this.vx = p.cos(angle) * speed;
     this.vy = p.sin(angle) * speed;
     
     // Start fully opaque and fade out
     this.alpha = 255;
     
-    // Bright yellow color variations for more vibrant fireworks
-    const colorVariation = p.random(40);
-    this.color = p.color(255, 255 - colorVariation, 0);
+    // Brighter color variations with multiple colors
+    const hue = p.random(360); // Random hue for varied colors
+    this.color = p.color(
+      255, // Always full red
+      p.random(200, 255), // Varied green for yellow-orange variations
+      p.random(50) // Touch of blue for sparkle
+    );
     
-    // Random size for the particle
-    this.size = p.random(3, 6);
+    // Larger random size for the particle
+    this.size = p.random(8, 12);
     
     // Trail effect
     this.trail = [];
@@ -63,8 +67,8 @@ class FireworkParticle {
     // Add a bit of gravity
     this.vy += 0.1;
     
-    // Fade out the particle faster
-    this.alpha -= 8;
+    // Fade out the particle more slowly
+    this.alpha -= 4;
     
     // Return true if the particle is still visible
     return this.alpha > 0;
