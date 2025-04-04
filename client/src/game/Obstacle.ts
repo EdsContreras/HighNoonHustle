@@ -169,18 +169,18 @@ export class Obstacle {
         // Create particles at the precise position of the train's smokestack
         // After examining the train image closely, we're adjusting the smokestack position
         
-        // Determine smokestack position based on train direction
-        // Updated to better match the train graphics - smokestack is positioned at around 1/4 of the train from the front
-        // For rightward-moving trains, smokestack is on the left side (front)
-        // For leftward-moving trains, smokestack is on the right side (front)
+        // Determine smokestack position based on the train image from the screenshot
+        // Looking at the image, the smokestack is almost at the very front of the train
+        // and positioned at the top of the train's body
         
-        // Horizontal position: 1/4 of the way from the front of the train
-        const frontOffset = this.width * 0.25; // 25% from the front
+        // Based on the screenshot, the black smokestack is at the very front of the train
+        // We need to position this perfectly based on the train image
+        const frontOffset = this.width * 0.45; // 45% from center puts it at the very front edge
         const smokeStackX = this.direction > 0 ? -frontOffset : frontOffset;
         
-        // Vertical position: slightly above the top of the train for better visual effect
-        // The train height is measured from center, so -height/2 is the top
-        const smokeStackY = -this.height * 0.55; // Slightly above the top (5% above)
+        // Vertical position: looking at the screenshot, the smokestack is at the top of the train
+        // But not quite centered - it's a bit lower than the very top edge
+        const smokeStackY = -this.height * 0.3; // Slightly below the top edge of the train
         
         // Add the new smoke particles with initial velocity matching train direction
         // This makes the smoke initially move with the train before drifting upward
