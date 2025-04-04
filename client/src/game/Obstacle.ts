@@ -178,8 +178,8 @@ export class Obstacle {
         
         // Position the smoke at specified position on the train
         // Note: in p5.js, coordinates are centered on the object (0,0 is center)
-        // Using specific value of 30.0 as requested
-        const smokeStackX = 30.0; // Using exact value as requested
+        // Using specific value of 40.0 as requested
+        const smokeStackX = 40.0; // Using exact value as requested
         
         // Set vertical position to be directly above the smokestack
         const smokeStackY = -20.0; // Above the smokestack to look natural
