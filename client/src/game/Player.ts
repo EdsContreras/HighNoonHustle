@@ -75,23 +75,26 @@ export class Player {
 
     const distX = targetX - currentX;
     const distY = targetY - currentY;
-
-    // Use the configurable move speed constant for smoother movement
-    if (Math.abs(distX) > 0.01 || Math.abs(distY) > 0.01) {
-      // Apply the movement speed - higher value = faster movement
-      this.x += distX * PLAYER_MOVE_SPEED;
-      this.y += distY * PLAYER_MOVE_SPEED;
+    
+    // Calculate total distance to target
+    const totalDist = Math.sqrt(distX * distX + distY * distY);
+    
+    if (totalDist > 0.001) { // More precise threshold
+      // Normalize movement vector for consistent diagonal speed
+      const moveX = (distX / totalDist) * PLAYER_MOVE_SPEED;
+      const moveY = (distY / totalDist) * PLAYER_MOVE_SPEED;
+      
+      this.x += moveX;
+      this.y += moveY;
       this.moving = true;
       
-      // If we're very close to the target (90% of the way there), snap to it
-      // This helps prevent tiny movements that could make the character appear to stutter
-      if (Math.abs(distX) < 0.1 && Math.abs(distY) < 0.1) {
+      // Smoother snap threshold
+      if (totalDist < 0.05) {
         this.x = this.targetX;
         this.y = this.targetY;
         this.moving = false;
       }
     } else {
-      // Snap to target position when very close
       this.x = this.targetX;
       this.y = this.targetY;
       this.moving = false;
