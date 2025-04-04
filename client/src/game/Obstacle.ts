@@ -181,8 +181,8 @@ export class Obstacle {
         // Using specific value of 40.0 as requested
         const smokeStackX = 40.0; // Using exact value as requested
         
-        // Set vertical position to be directly above the smokestack
-        const smokeStackY = -20.0; // Above the smokestack to look natural
+        // Set vertical position to exactly -25.0 as requested
+        const smokeStackY = -25.0; // Using exact value as requested
         
         // Add the new smoke particles with initial velocity matching train direction
         // This makes the smoke initially move with the train before drifting upward
