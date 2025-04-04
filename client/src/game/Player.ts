@@ -21,6 +21,10 @@ export class Player {
   private lastMoveTime: number;
   private moving: boolean;
   private image: p5.Image | null;
+  private isInvincible: boolean = false;
+  private invincibilityStartTime: number = 0;
+  private invincibilityDuration: number = 2000; // 2 seconds of invincibility
+  private flashInterval: number = 150; // Flash every 150ms
 
   constructor(
     p: p5,
@@ -76,11 +80,32 @@ export class Player {
       this.y = this.targetY;
       this.moving = false;
     }
+    
+    // Check if invincibility has expired
+    if (this.isInvincible) {
+      const currentTime = this.p.millis();
+      if (currentTime - this.invincibilityStartTime > this.invincibilityDuration) {
+        this.isInvincible = false;
+        console.log("Player invincibility ended");
+      }
+    }
   }
 
   public draw() {
     const pixelX = this.x * this.cellWidth;
     const pixelY = this.y * this.cellHeight;
+
+    // Check if player should be visible during invincibility flashing
+    if (this.isInvincible) {
+      const currentTime = this.p.millis();
+      const flashTime = currentTime - this.invincibilityStartTime;
+      const shouldShow = Math.floor(flashTime / this.flashInterval) % 2 === 0;
+      
+      // Skip drawing if player should be invisible during this flash frame
+      if (!shouldShow) {
+        return;
+      }
+    }
 
     this.p.push();
     this.p.translate(pixelX + this.cellWidth / 2, pixelY + this.cellHeight / 2);
@@ -200,5 +225,15 @@ export class Player {
       x: Math.round(this.x),
       y: Math.round(this.y),
     };
+  }
+  
+  public startInvincibility() {
+    this.isInvincible = true;
+    this.invincibilityStartTime = this.p.millis();
+    console.log("Player is now invincible for", this.invincibilityDuration, "ms");
+  }
+  
+  public isPlayerInvincible(): boolean {
+    return this.isInvincible;
   }
 }

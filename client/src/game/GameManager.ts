@@ -226,8 +226,8 @@ export class GameManager {
     for (const lane of this.lanes) {
       lane.update(this.p.width);
       
-      // Skip collision detection if player is still moving
-      if (this.player.isMoving()) continue;
+      // Skip collision detection if player is still moving or invincible
+      if (this.player.isMoving() || this.player.isPlayerInvincible()) continue;
       
       // Check collisions with obstacles
       const playerRect = this.player.getRect();
@@ -390,9 +390,9 @@ export class GameManager {
     if (this.lives <= 0) {
       this.handleGameOver();
     } else {
-      // Reset player position to starting position (45% from bottom)
+      // Make player temporarily invincible with flashing effect
       if (this.player) {
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
+        this.player.startInvincibility();
       }
     }
   }
