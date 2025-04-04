@@ -18,9 +18,9 @@ class FireworkParticle {
     this.x = x;
     this.y = y;
     
-    // Random velocity for the particle - higher speeds for more dramatic effect
+    // Random velocity for the particle - moderate speeds for a more subtle effect
     const angle = p.random(0, p.TWO_PI);
-    const speed = p.random(4, 8); // Increased speed range
+    const speed = p.random(2, 5); // Reduced from 4-8 to 2-5 for less intense movement
     this.vx = p.cos(angle) * speed;
     this.vy = p.sin(angle) * speed;
     
@@ -35,10 +35,10 @@ class FireworkParticle {
       p.random(50) // Touch of blue for sparkle
     );
     
-    // Larger random size for the particle
-    this.size = p.random(8, 12);
+    // Smaller random size for the particle
+    this.size = p.random(4, 8); // Reduced from 8-12 to 4-8
     
-    // Trail effect
+    // Trail effect - shorter trail
     this.trail = [];
   }
   
@@ -50,25 +50,25 @@ class FireworkParticle {
       alpha: this.alpha
     });
     
-    // Keep trail at a reasonable length
-    if (this.trail.length > 5) {
+    // Keep trail shorter for less intense effect
+    if (this.trail.length > 3) { // Reduced from 5 to 3
       this.trail.shift();
     }
     
-    // Decrease alpha of all trail points
+    // Decrease alpha of all trail points faster
     for (let i = 0; i < this.trail.length; i++) {
-      this.trail[i].alpha -= 15;
+      this.trail[i].alpha -= 25; // Increased from 15 to 25 for faster fade
     }
     
     // Move the particle
     this.x += this.vx;
     this.y += this.vy;
     
-    // Add a bit of gravity
-    this.vy += 0.1;
+    // Add a bit of gravity (slightly reduced)
+    this.vy += 0.08; // Reduced from 0.1
     
-    // Fade out the particle more slowly
-    this.alpha -= 4;
+    // Fade out the particle slightly faster
+    this.alpha -= 6; // Increased from 4 to 6
     
     // Return true if the particle is still visible
     return this.alpha > 0;
@@ -135,21 +135,21 @@ export class Coin {
   }
   
   private createFireworkEffect() {
-    // Create more particles for a more impressive firework effect
-    const particleCount = 100; // Doubled again for even more particles
+    // Create particles for firework effect - reduced by half
+    const particleCount = 50; // Reduced from 100 to 50
     
     // Create the main explosion particles
     for (let i = 0; i < particleCount; i++) {
       const particle = new FireworkParticle(this.p, this.x, this.y);
-      particle.size *= 1.5; // Make particles 50% larger
+      particle.size *= 1.2; // Reduced from 1.5 to 1.2 (less large)
       this.fireworks.push(particle);
     }
     
-    // Add more larger "spark" particles
-    for (let i = 0; i < 20; i++) {
+    // Add a few larger "spark" particles - reduced number
+    for (let i = 0; i < 10; i++) { // Reduced from 20 to 10
       const spark = new FireworkParticle(this.p, this.x, this.y);
-      // Override with larger, slower-moving particles
-      spark.size = this.p.random(12, 18);
+      // Smaller, slower-moving particles
+      spark.size = this.p.random(8, 14); // Reduced from 12-18 to 8-14
       spark.vx *= 0.8;
       spark.vy *= 0.8;
       this.fireworks.push(spark);
