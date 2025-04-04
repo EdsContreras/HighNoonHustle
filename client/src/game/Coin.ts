@@ -234,15 +234,15 @@ export class Coin {
       0.1 * this.p.sin(this.p.frameCount * 0.08) // Pulsing effect +/- 10%
     );
     
-    // Draw the subtle glow circle - matches the actual hitbox size
+    // Draw the glow circle - matches the 120% expanded hitbox
     this.p.noStroke();
     this.p.fill(255, 215, 0, 60 * pulseIntensity); // Gold with pulsing transparency
     this.p.ellipseMode(this.p.CENTER);
     this.p.ellipse(
       this.x, 
       screenY + hoverOffset, 
-      this.width * 1.02, // Match the actual hitbox size we defined in contains()
-      this.height * 1.02
+      this.width * 1.2, // Match the expanded hitbox we defined in contains()
+      this.height * 1.2
     );
     
     // Draw the coin with animation
@@ -268,66 +268,100 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // Use a more restrictive hitbox - only slightly larger than the coin's actual size
-    // Reduced from 110% to 102% - now player must be much closer to the coin
-    const expandFactor = 1.02; 
+    // IMPROVED: Make the collision detection more reliable by using multiple methods
+    
+    // METHOD 1: Standard box collision with expanded hitbox (120% for better detection)
+    const expandFactor = 1.20; // Increased from 1.02 to 1.20 for more reliable collection
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
     
-    // Calculate coin boundaries with slightly expanded hitbox
+    // Calculate coin boundaries with expanded hitbox
     const coinLeft = this.x - expandedWidth / 2;
     const coinRight = this.x + expandedWidth / 2;
     const coinTop = this.y - expandedHeight / 2;
     const coinBottom = this.y + expandedHeight / 2;
     
-    // Calculate player center for a more accurate collision test
+    // Use the player's full hitbox for more consistent collection
+    const playerRight = playerX + playerWidth;
+    const playerBottom = playerY + playerHeight;
+    
+    // Check standard AABB collision with expanded hitbox
+    const boxCollision = !(
+      playerX > coinRight || 
+      playerRight < coinLeft || 
+      playerY > coinBottom || 
+      playerBottom < coinTop
+    );
+    
+    // METHOD 2: Distance-based collision for better feel
+    // Calculate centers
     const playerCenterX = playerX + playerWidth / 2;
     const playerCenterY = playerY + playerHeight / 2;
     
-    // Adjust player hitbox to be smaller than visual size (80% of actual size)
-    // This ensures player needs to be visibly touching the coin
-    const playerHitboxWidth = playerWidth * 0.8;
-    const playerHitboxHeight = playerHeight * 0.8;
+    // Calculate distance between centers
+    const dx = Math.abs(playerCenterX - this.x);
+    const dy = Math.abs(playerCenterY - this.y);
     
-    // Calculate player hitbox with adjusted size (centered on player)
-    const playerHitboxLeft = playerCenterX - playerHitboxWidth / 2;
-    const playerHitboxRight = playerCenterX + playerHitboxWidth / 2;
-    const playerHitboxTop = playerCenterY - playerHitboxHeight / 2;
-    const playerHitboxBottom = playerCenterY + playerHitboxHeight / 2;
+    // Set threshold for collection - 70% of combined dimensions
+    // This creates a more generous but still visually accurate collection area
+    const collectionThresholdX = (this.width + playerWidth) * 0.35; // Half of 70%
+    const collectionThresholdY = (this.height + playerHeight) * 0.35; // Half of 70%
     
-    // Check precise AABB collision with adjusted hitboxes
-    const isColliding = !(
-      playerHitboxLeft > coinRight || 
-      playerHitboxRight < coinLeft || 
-      playerHitboxTop > coinBottom || 
-      playerHitboxBottom < coinTop
-    );
+    // Check if centers are close enough
+    const centerProximity = (dx < collectionThresholdX && dy < collectionThresholdY);
     
-    // Remove the center-based distance check - require actual overlap
-    // This prevents collection when player is "near" but not on the coin
+    // METHOD 3: Check for substantial overlap percentage
+    // Calculate overlap area
+    const overlapWidth = Math.max(0, 
+      Math.min(playerRight, coinRight) - Math.max(playerX, coinLeft));
+    const overlapHeight = Math.max(0, 
+      Math.min(playerBottom, coinBottom) - Math.max(playerY, coinTop));
+    const overlapArea = overlapWidth * overlapHeight;
     
-    if (isColliding) {
+    // Calculate minimum required overlap (as a percentage of coin area)
+    const coinArea = this.width * this.height;
+    const minRequiredOverlap = coinArea * 0.15; // 15% overlap required
+    
+    // Check if overlap is substantial
+    const hasSubstantialOverlap = overlapArea > minRequiredOverlap;
+    
+    // Combine all three methods - need to pass at least one test
+    const shouldCollect = boxCollision || centerProximity || hasSubstantialOverlap;
+    
+    if (shouldCollect) {
       // Log the actual collision data for debugging
-      console.log("Coin collection - precise collision detected!", {
+      console.log("Coin collection detected!", {
+        method: {
+          boxCollision,
+          centerProximity,
+          hasSubstantialOverlap
+        },
         coin: { x: this.x, y: this.y, width: this.width, height: this.height },
         expanded: { width: expandedWidth, height: expandedHeight },
-        coinRect: { left: coinLeft, right: coinRight, top: coinTop, bottom: coinBottom },
-        playerHitbox: { 
-          left: playerHitboxLeft, 
-          right: playerHitboxRight, 
-          top: playerHitboxTop, 
-          bottom: playerHitboxBottom 
+        player: { 
+          x: playerX, 
+          y: playerY,
+          width: playerWidth,
+          height: playerHeight,
+          centerX: playerCenterX,
+          centerY: playerCenterY
         },
-        playerVisual: { 
-          left: playerX, 
-          right: playerX + playerWidth, 
-          top: playerY, 
-          bottom: playerY + playerHeight 
+        distances: {
+          dx,
+          dy,
+          thresholdX: collectionThresholdX,
+          thresholdY: collectionThresholdY
+        },
+        overlap: {
+          width: overlapWidth,
+          height: overlapHeight,
+          area: overlapArea,
+          required: minRequiredOverlap
         }
       });
     }
     
-    return isColliding;
+    return shouldCollect;
   }
   
   public isCollected(): boolean {
