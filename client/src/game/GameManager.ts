@@ -295,10 +295,8 @@ export class GameManager {
         }
       }
       
-      // Always reset player when they reach top of screen
-      if (this.player) {
-        this.player.reset(Math.floor(GRID_CELLS_X / 2), Math.floor(GRID_CELLS_Y * 0.55));
-      }
+      // Don't reset player position when they reach the top of the screen
+      // This allows player to stay at the top edge of the map
     }
     
     // Check if all goals reached - increase difficulty and regenerate level
@@ -416,8 +414,22 @@ export class GameManager {
     
     console.log(`All goals reached! Difficulty increased to ${this.difficulty}. Bonus: ${bonus} points.`);
     
+    // Store current player position
+    let currentPlayerX = 0;
+    let currentPlayerY = 0;
+    
+    if (this.player) {
+      currentPlayerX = this.player.getGridPosition().x;
+      currentPlayerY = this.player.getGridPosition().y;
+    }
+    
     // Generate new game content with higher difficulty
     this.generateGameContent();
+    
+    // Restore player position if we have one
+    if (this.player && currentPlayerX && currentPlayerY) {
+      this.player.reset(currentPlayerX, currentPlayerY);
+    }
     
     // Play success sound
     const { playSuccess } = useAudio.getState();
@@ -434,8 +446,22 @@ export class GameManager {
     
     console.log("Legacy level complete called - shouldn't happen in continuous mode");
     
+    // Store current player position
+    let currentPlayerX = 0;
+    let currentPlayerY = 0;
+    
+    if (this.player) {
+      currentPlayerX = this.player.getGridPosition().x;
+      currentPlayerY = this.player.getGridPosition().y;
+    }
+    
     // Generate new game content with higher difficulty
     this.generateGameContent();
+    
+    // Restore player position if we have one
+    if (this.player && currentPlayerX && currentPlayerY) {
+      this.player.reset(currentPlayerX, currentPlayerY);
+    }
     
     // Don't trigger onLevelComplete callback as we're in continuous mode
   }
