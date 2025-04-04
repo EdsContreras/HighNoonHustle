@@ -44,7 +44,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    console.error("Server error:", err);
+    throw err;
   });
 
   // Force development mode for our local environment

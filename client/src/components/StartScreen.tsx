@@ -9,9 +9,11 @@ interface StartScreenProps {
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   return (
     <div 
-      className="game-start-screen"
+      className="absolute inset-0 flex items-center justify-center"
       style={{
         backgroundImage: 'url(/assets/IntroBackground.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       {/* Semi-transparent overlay to improve text legibility */}

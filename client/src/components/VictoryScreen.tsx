@@ -14,12 +14,11 @@ const VictoryScreen: React.FC<VictoryScreenProps> = ({
 }) => {
   return (
     <div 
-      className="absolute inset-0 flex items-center justify-center bg-black"
+      className="absolute inset-0 flex items-center justify-center"
       style={{
         backgroundImage: 'url(/assets/VictoryBackground.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Semi-transparent overlay to improve text legibility */}

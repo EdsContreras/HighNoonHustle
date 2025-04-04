@@ -32,39 +32,26 @@ const Game = () => {
   // Initialize audio
   useEffect(() => {
     console.log("Initializing audio...");
-    // Load sound effects with error handling
-    try {
-      const bgMusic = new Audio('/sounds/background.mp3');
-      bgMusic.loop = true;
-      bgMusic.volume = 0.3;
-      
-      // Preload audio to check for errors
-      bgMusic.preload = 'auto';
-      
-      const hitSfx = new Audio('/sounds/hit.mp3');
-      hitSfx.volume = 0.5;
-      hitSfx.preload = 'auto';
-      
-      const successSfx = new Audio('/sounds/success.mp3');
-      successSfx.volume = 0.5;
-      successSfx.preload = 'auto';
-      
-      // Set the audio elements in the store
-      setBackgroundMusic(bgMusic);
-      setHitSound(hitSfx);
-      setSuccessSound(successSfx);
-      
-      console.log("Audio initialization complete");
-      
-      // Clean up
-      return () => {
-        bgMusic.pause();
-        bgMusic.currentTime = 0;
-      };
-    } catch (error) {
-      console.error("Error initializing audio:", error);
-      // Continue without audio if there's an error
-    }
+    // Load sound effects
+    const bgMusic = new Audio('/sounds/background.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.3;
+
+    const hitSfx = new Audio('/sounds/hit.mp3');
+    hitSfx.volume = 0.5;
+
+    const successSfx = new Audio('/sounds/success.mp3');
+    successSfx.volume = 0.5;
+
+    setBackgroundMusic(bgMusic);
+    setHitSound(hitSfx);
+    setSuccessSound(successSfx);
+
+    // Clean up
+    return () => {
+      bgMusic.pause();
+      bgMusic.currentTime = 0;
+    };
   }, [setBackgroundMusic, setHitSound, setSuccessSound]);
 
   // Initialize p5.js sketch
@@ -126,18 +113,11 @@ const Game = () => {
 
       p.draw = () => {
         // Always draw something even if not playing - helps with debugging
-        p.background(20); // Darker background for better visibility
-        
-        // Display current game state visibly on canvas
-        p.fill(255);
-        p.textSize(16);
-        p.text(`Game State: ${gameStateRef.current}`, 20, 30);
-        p.text(`Canvas Size: ${p.width}x${p.height}`, 20, 50);
-        p.text(`Frame: ${p.frameCount}`, 20, 70);
+        p.background(200);
         
         // Draw a test rectangle to see if p5 is working at all
         p.fill(0, 255, 0);
-        p.rect(50, 100, 50, 50);
+        p.rect(50, 50, 50, 50);
         
         // Use ref instead of the React state to avoid closure issues
         if (gameStateRef.current === 'playing') {
@@ -152,11 +132,6 @@ const Game = () => {
           // Update and draw game
           gameManager.update();
           gameManager.draw();
-        } else {
-          // Just occasionally log non-playing states to confirm things are working
-          if (p.frameCount % 300 === 0) {
-            console.log("Game is in state:", gameStateRef.current, "- frame:", p.frameCount);
-          }
         }
       };
 

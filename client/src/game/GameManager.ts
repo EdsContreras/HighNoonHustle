@@ -185,7 +185,7 @@ export class GameManager {
       }
     }
     
-    // Create goals (money bags)
+    // Create goals
     const goalCount = levelConfig.goalCount;
     const goalWidth = this.p.width / goalCount;
     
@@ -193,10 +193,7 @@ export class GameManager {
       const goalX = i * goalWidth + goalWidth / 2;
       const goalY = laneHeight / 2; // Top of the screen
       
-      // Create proper sized money bags
-      // Use a square aspect ratio for the money bag with a more appropriate size
-      const bagSize = Math.min(goalWidth * 0.6, laneHeight * 0.7);
-      this.goals.push(new Goal(this.p, goalX, goalY, bagSize, bagSize));
+      this.goals.push(new Goal(this.p, goalX, goalY, goalWidth * 0.8, laneHeight * 0.8));
     }
   }
   
@@ -300,9 +297,7 @@ export class GameManager {
       let reachedMoneyBag = false;
       
       for (const goal of this.goals) {
-        const playerCenterX = playerPos.x * this.cellWidth + this.cellWidth / 2;
-        
-        if (!goal.isReached() && goal.contains(playerCenterX)) {
+        if (!goal.isReached() && goal.contains(playerPos.x * this.cellWidth + this.cellWidth / 2)) {
           goal.setReached(true);
           this.score += POINTS_FOR_MONEYBAG;
           this.callbacks.updateScore(this.score);
