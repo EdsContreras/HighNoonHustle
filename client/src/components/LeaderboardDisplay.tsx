@@ -119,23 +119,12 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
         )}
         
         <div className="button-container">
-          {(onClose || onBack) && (
-            <button 
-              className="close-button" 
-              onClick={onBack || onClose}
-            >
-              {onBack ? 'Back' : 'Close'}
-            </button>
-          )}
-          
-          {onReturnToStart && (
-            <button 
-              className="start-button" 
-              onClick={onReturnToStart}
-            >
-              Return to Saloon
-            </button>
-          )}
+          <button 
+            className="start-button" 
+            onClick={onReturnToStart}
+          >
+            Return to Saloon
+          </button>
         </div>
       </div>
     </div>
