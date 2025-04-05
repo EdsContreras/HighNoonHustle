@@ -390,8 +390,8 @@ export class GameManager {
             this.score += POINTS_FOR_BADGE;
             this.callbacks.updateScore(this.score);
             
-            // Make player invincible for set duration
-            this.player.makeInvincible(INVINCIBILITY_DURATION);
+            // Make player invincible for set duration with badge visual indicator
+            this.player.makeInvincible(INVINCIBILITY_DURATION, true);
             
             // Play success sound
             const { playSuccess } = useAudio.getState();

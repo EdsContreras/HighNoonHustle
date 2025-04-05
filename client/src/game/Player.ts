@@ -26,6 +26,7 @@ export class Player {
   private invincibilityDuration: number; // Duration in milliseconds
   private flashInterval: number; // How fast to flash in milliseconds
   private lastFlashTime: number;
+  private badgeInvincibility: boolean; // Flag to track if invincibility is from a sheriff badge
 
   constructor(
     p: p5,
@@ -50,6 +51,7 @@ export class Player {
     
     // Invincibility settings
     this.invincible = false;
+    this.badgeInvincibility = false;
     this.invincibilityTime = 0;
     this.invincibilityDuration = 2000; // 2 seconds of invincibility
     this.flashInterval = 200; // Flash every 200ms
@@ -122,24 +124,45 @@ export class Player {
     this.p.push();
     this.p.translate(pixelX + this.cellWidth / 2, pixelY + this.cellHeight / 2);
     
-    // Handle flashing effect when invincible
-    let visible = true;
-    if (this.invincible) {
+    // Draw shield bubble for badge-based invincibility
+    if (this.invincible && this.badgeInvincibility) {
+      // Create pulsing effect for shield
+      const shieldPulse = 1.0 + Math.sin(this.p.frameCount * 0.1) * 0.1; // 10% pulse
+      const shieldSize = Math.max(PLAYER_WIDTH, PLAYER_HEIGHT) * 1.4 * shieldPulse;
+      
+      // Draw outer shield bubble (light blue)
+      this.p.noStroke();
+      this.p.fill(30, 144, 255, 70); // Light blue, semi-transparent
+      this.p.ellipse(0, 0, shieldSize, shieldSize);
+      
+      // Draw inner shield bubble (more opaque)
+      this.p.fill(30, 144, 255, 40); // More transparent inner glow
+      this.p.ellipse(0, 0, shieldSize * 0.8, shieldSize * 0.8);
+      
+      // Tint player gold for badge invincibility
+      this.p.tint(255, 215, 0, 220); // Gold tint
+    }
+    // Handle regular invincibility flashing effect
+    else if (this.invincible) {
       const currentTime = this.p.millis();
       
       // Only draw player every other flash interval
       if (currentTime - this.lastFlashTime > this.flashInterval) {
         this.lastFlashTime = currentTime;
-        visible = !visible; // Toggle visibility for flashing effect
       }
       
-      // Apply a white tint when invincible (alternating with normal appearance)
-      if (visible) {
+      // Apply white flashing effect
+      const flashState = Math.floor((currentTime - this.invincibilityTime) / this.flashInterval) % 2 === 0;
+      if (flashState) {
         this.p.tint(255, 255, 255, 180); // Semi-transparent white
       }
     }
     
-    // Only draw if visible (for flashing effect)
+    // Draw the player sprite - always visible for badge invincibility
+    // Only flash for regular invincibility
+    const visible = !this.invincible || this.badgeInvincibility || 
+                   Math.floor((this.p.millis() - this.invincibilityTime) / this.flashInterval) % 2 === 0;
+                   
     if (visible) {
       // Draw the player sprite
       if (this.image) {
@@ -245,6 +268,7 @@ export class Player {
     
     // Reset invincibility state when position is reset
     this.invincible = false;
+    this.badgeInvincibility = false;
   }
 
   public handleResize(cellWidth: number, cellHeight: number) {
@@ -266,16 +290,19 @@ export class Player {
   /**
    * Start the invincibility effect
    * @param duration Optional override for the invincibility duration in milliseconds
+   * @param fromBadge Whether this invincibility is from collecting a sheriff badge
    */
-  public makeInvincible(duration?: number) {
+  public makeInvincible(duration?: number, fromBadge: boolean = false) {
     this.invincible = true;
+    this.badgeInvincibility = fromBadge;
     this.invincibilityTime = this.p.millis();
     
     if (duration !== undefined) {
       this.invincibilityDuration = duration;
     }
     
-    console.log("Player is now invincible for", this.invincibilityDuration / 1000, "seconds");
+    const source = fromBadge ? "sheriff badge" : "life lost";
+    console.log(`Player is now invincible for ${this.invincibilityDuration / 1000} seconds (from ${source})`);
   }
   
   /**
