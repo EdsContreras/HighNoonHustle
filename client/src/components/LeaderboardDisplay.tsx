@@ -59,22 +59,16 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
     <div 
       className="absolute inset-0 flex items-center justify-center"
       style={{
-        backgroundImage: 'url(/assets/IntroBackground.png)',
+        backgroundImage: 'url(/assets/MostWanted.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
       {/* Semi-transparent overlay to improve text legibility */}
-      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-black/30" />
       
-      <div className="leaderboard-container bg-black/50 border-2 border-amber-800 z-10">
-        <div className="most-wanted-header">
-          <img 
-            src="/assets/MostWanted.png" 
-            alt="The Most Wanted Outlaws" 
-            className="most-wanted-image" 
-          />
-        </div>
+      <div className="leaderboard-container bg-black/70 border-2 border-amber-800 z-10">
+        {/* Removed the image since we're using it as background */}
         <h2 className="leaderboard-title">TOP OUTLAWS</h2>
         
         {loading ? (
