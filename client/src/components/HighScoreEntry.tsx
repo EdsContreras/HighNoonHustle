@@ -98,6 +98,13 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
 
   return (
     <div className="high-score-entry" onClick={() => inputRef.current?.focus()}>
+      <div className="most-wanted-header">
+        <img 
+          src="/assets/MostWanted.png" 
+          alt="The Most Wanted Outlaws" 
+          className="most-wanted-image-small" 
+        />
+      </div>
       <h2 className="entry-title">WANTED!</h2>
       <p className="entry-score">Bounty: ${score}</p>
       <p className="entry-description">You've made it to the Most Wanted list!</p>
