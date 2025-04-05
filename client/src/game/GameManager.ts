@@ -549,4 +549,11 @@ export class GameManager {
     }
     return array;
   }
+  
+  // Public method to update player accessories
+  public updatePlayerAccessories() {
+    if (this.player) {
+      this.player.updateAccessories();
+    }
+  }
 }
