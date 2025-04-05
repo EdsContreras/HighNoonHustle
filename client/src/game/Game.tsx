@@ -374,6 +374,22 @@ const Game = () => {
     };
   }, []);
 
+  // Listen for high score entry event
+  useEffect(() => {
+    const handleShowHighScoreEntry = () => {
+      console.log('Received show-high-score-entry event, changing game state to highScore');
+      setGameState('highScore');
+    };
+    
+    // Add event listener
+    window.addEventListener('show-high-score-entry', handleShowHighScoreEntry);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('show-high-score-entry', handleShowHighScoreEntry);
+    };
+  }, []);
+  
   // Update game manager when level changes
   useEffect(() => {
     console.log("Game state or level changed:", gameState, currentLevel);
