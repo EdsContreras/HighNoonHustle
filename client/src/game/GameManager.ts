@@ -230,7 +230,8 @@ export class GameManager {
     console.log(`Created ${goalCount} money bags for level ${this.level}`); // Debug info
     
     // Create sheriff badges for invincibility powerups
-    const badgeCount = Math.min(SHERIFF_BADGES_PER_LEVEL, levelConfig.lanes.length - 2);
+    // Scale number of badges with level: 1 for level 1, 2 for level 2, 3 for level 3
+    const badgeCount = Math.min(this.level, levelConfig.lanes.length - 2);
     
     // Create a pool of potential badge positions (different from coin positions)
     const potentialBadgePositions = [];

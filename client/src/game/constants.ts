@@ -28,7 +28,7 @@ export const COINS_PER_LANE = 3; // Average number of coins per lane
 // Sheriff Badge settings
 export const SHERIFF_BADGE_WIDTH = 55; // Slightly larger than coins for better visibility
 export const SHERIFF_BADGE_HEIGHT = 55; // Slightly larger than coins for better visibility
-export const SHERIFF_BADGES_PER_LEVEL = 2; // Number of sheriff badges per level
+export const SHERIFF_BADGES_PER_LEVEL = 0; // Base value - actual count determined by level
 export const INVINCIBILITY_DURATION = 3000; // 3 seconds of invincibility
 export const POINTS_FOR_BADGE = 500; // Points for collecting a sheriff badge
 
