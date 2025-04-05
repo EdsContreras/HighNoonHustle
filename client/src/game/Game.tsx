@@ -456,13 +456,19 @@ const Game = () => {
   
   // Show leaderboard
   const showLeaderboard = () => {
+    // Save the current state so we can return to it later
+    sessionStorage.setItem('previousLeaderboardState', gameState);
     setGameState('leaderboard');
   };
   
   // Go back from leaderboard
   const hideLeaderboard = () => {
-    // Go back to the previous state (victory or game over)
-    if (currentLevel >= 3) {
+    // Track where we came from
+    const previousState = sessionStorage.getItem('previousLeaderboardState');
+    
+    if (previousState === 'start') {
+      setGameState('start');
+    } else if (currentLevel >= 3) {
       setGameState('victory');
     } else {
       setGameState('gameOver');
@@ -480,7 +486,7 @@ const Game = () => {
         
         {/* Overlay UI based on game state */}
         {gameState === 'start' && (
-          <StartScreen onStart={startGame} />
+          <StartScreen onStart={startGame} showLeaderboard={showLeaderboard} />
         )}
         
         {gameState === 'gameOver' && (

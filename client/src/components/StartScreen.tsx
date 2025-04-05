@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 
 interface StartScreenProps {
   onStart: () => void;
+  showLeaderboard?: () => void; // Add optional function for showing leaderboard
 }
 
-const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+const StartScreen: React.FC<StartScreenProps> = ({ onStart, showLeaderboard }) => {
   return (
     <div 
       className="absolute inset-0 flex items-center justify-center"
@@ -46,6 +47,17 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
           >
             Start Game
           </Button>
+          
+          {/* Only show the leaderboard button if the showLeaderboard function is provided */}
+          {showLeaderboard && (
+            <Button 
+              variant="outline"
+              className="w-[200px] bg-amber-900/70 hover:bg-amber-800 text-amber-300 border border-amber-700 mt-2"
+              onClick={showLeaderboard}
+            >
+              Most Wanted List
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
