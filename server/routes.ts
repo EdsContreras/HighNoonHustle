@@ -28,10 +28,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Additional validation for playerName (max 4 chars, uppercase)
-      if (result.data.playerName.length > 4) {
+      // Additional validation for playerName (max 5 chars, uppercase)
+      if (result.data.playerName.length > 5) {
         return res.status(400).json({
-          error: "Player name must be 4 characters or less"
+          error: "Player name must be 5 characters or less"
         });
       }
       
