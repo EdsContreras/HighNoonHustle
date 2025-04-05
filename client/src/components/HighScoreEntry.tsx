@@ -98,10 +98,10 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
 
   return (
     <div className="high-score-entry" onClick={() => inputRef.current?.focus()}>
-      <h2 className="entry-title">CONGRATULATIONS!</h2>
-      <p className="entry-score">Your score: {score}</p>
-      <p className="entry-description">Your score made it to the leaderboard!</p>
-      <p className="entry-description">Enter your name (up to 4 letters):</p>
+      <h2 className="entry-title">WANTED!</h2>
+      <p className="entry-score">Bounty: ${score}</p>
+      <p className="entry-description">You've made it to the Most Wanted list!</p>
+      <p className="entry-description">Enter your outlaw name (up to 4 letters):</p>
       
       <form onSubmit={handleSubmit} className="entry-form">
         <div className="input-container">
@@ -123,7 +123,7 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
         
         {error && <p className="error-message">{error}</p>}
         {playerName.length === 0 && 
-          <p className="help-text">Type up to 4 letters for your name</p>
+          <p className="help-text">Enter your outlaw alias (4 letters max)</p>
         }
         
         <div className="button-container">
@@ -132,7 +132,7 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
             disabled={submitting || playerName.length === 0} 
             className="submit-button"
           >
-            {submitting ? 'Saving...' : 'Submit Score'}
+            {submitting ? 'Posting Wanted...' : 'Post Bounty'}
           </button>
           
           <button 
@@ -148,7 +148,7 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
             disabled={submitting}
             className="skip-button"
           >
-            Skip
+            Remain Anonymous
           </button>
         </div>
       </form>

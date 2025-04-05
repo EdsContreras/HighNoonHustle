@@ -57,7 +57,14 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
 
   return (
     <div className="leaderboard-container">
-      <h2 className="leaderboard-title">TOP SCORES</h2>
+      <div className="most-wanted-header">
+        <img 
+          src="/assets/MostWanted.png" 
+          alt="The Most Wanted Outlaws" 
+          className="most-wanted-image" 
+        />
+      </div>
+      <h2 className="leaderboard-title">TOP OUTLAWS</h2>
       
       {loading ? (
         <p className="loading-text">Loading high scores...</p>
@@ -70,7 +77,7 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
               <tr>
                 <th className="rank-column">RANK</th>
                 <th className="name-column">NAME</th>
-                <th className="score-column">SCORE</th>
+                <th className="score-column">BOUNTY</th>
                 <th className="level-column">LEVEL</th>
               </tr>
             </thead>
@@ -79,13 +86,13 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
                 <tr key={score.id} className={playerScore === score.score ? 'your-score' : ''}>
                   <td className="rank-column">{index + 1}</td>
                   <td className="name-column">{score.playerName}</td>
-                  <td className="score-column">{score.score}</td>
+                  <td className="score-column">${score.score}</td>
                   <td className="level-column">{score.level}</td>
                 </tr>
               ))}
               {highScores.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="no-scores">No high scores yet. Be the first!</td>
+                  <td colSpan={4} className="no-scores">No outlaws yet. Be the first to make the wanted list!</td>
                 </tr>
               )}
             </tbody>
@@ -95,11 +102,11 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
       
       {playerScore && (
         <div className="player-score-info">
-          <p>Your score: {playerScore}</p>
+          <p>Your bounty: ${playerScore}</p>
           {wouldMakeLeaderboard() ? (
-            <p className="make-leaderboard">You made the leaderboard!</p>
+            <p className="make-leaderboard">You're on the WANTED list!</p>
           ) : (
-            <p className="no-leaderboard">Keep trying to make the leaderboard!</p>
+            <p className="no-leaderboard">Commit more crimes to make the WANTED list!</p>
           )}
         </div>
       )}
