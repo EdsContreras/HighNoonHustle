@@ -70,37 +70,33 @@ const VictoryScreen: React.FC<VictoryScreenProps> = ({
         </CardContent>
 
         <CardFooter className="flex flex-col gap-3 items-center">
-          {qualifiesForHighScore ? (
-            <Button 
-              size="lg"
-              onClick={handleNextClick}
-              className="w-[200px] bg-green-700 hover:bg-green-600 text-white border border-green-500 animate-pulse"
-            >
-              Next
-            </Button>
-          ) : (
-            <Button 
-              size="lg" 
-              onClick={onRestart} 
-              className="w-[200px] bg-amber-700 hover:bg-amber-600 text-white border border-amber-500"
-            >
-              Play Again
-            </Button>
-          )}
+          <Button 
+            size="lg"
+            onClick={handleNextClick}
+            className={`w-[200px] ${qualifiesForHighScore ? "bg-amber-700 hover:bg-amber-600 animate-pulse" : "bg-amber-700 hover:bg-amber-600"} text-white border border-amber-500`}
+          >
+            Post Bounty
+          </Button>
           
-          {!qualifiesForHighScore && (
-            <Button 
-              size="default" 
-              onClick={showLeaderboard} 
-              className="w-[200px] bg-amber-900 hover:bg-amber-800 text-white border border-amber-600"
-            >
-              View Leaderboard
-            </Button>
-          )}
+          <Button 
+            size="lg" 
+            onClick={onRestart} 
+            className="w-[200px] bg-amber-800 hover:bg-amber-700 text-white border border-amber-500"
+          >
+            Play Again
+          </Button>
+          
+          <Button 
+            size="default" 
+            onClick={showLeaderboard} 
+            className="w-[200px] bg-amber-900 hover:bg-amber-800 text-white border border-amber-600"
+          >
+            View Most Wanted
+          </Button>
           
           {qualifiesForHighScore && (
-            <p className="text-green-400 text-sm mt-2">
-              New high score! Click Next to enter your name
+            <p className="text-amber-300 text-sm mt-2 font-bold">
+              New high score! Post your bounty to the most wanted list
             </p>
           )}
         </CardFooter>
