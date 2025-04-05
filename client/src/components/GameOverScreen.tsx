@@ -14,26 +14,24 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
   onRestart,
   showLeaderboard,
 }) => {
-  const [redirectingToHighScore, setRedirectingToHighScore] = useState(false);
+  const [qualifiesForHighScore, setQualifiesForHighScore] = useState(false);
   
   // Check if player qualifies for high score entry
   useEffect(() => {
-    const qualifiesForHighScore = sessionStorage.getItem('qualifiesForHighScore') === 'true';
+    const isQualified = sessionStorage.getItem('qualifiesForHighScore') === 'true';
+    setQualifiesForHighScore(isQualified);
     
-    if (qualifiesForHighScore) {
+    if (isQualified) {
       console.log("Game over screen: Player qualifies for high score entry");
-      
-      // Show game over screen for 3 seconds, then redirect to high score entry
-      const timer = setTimeout(() => {
-        console.log("Redirecting to high score entry after game over screen");
-        setRedirectingToHighScore(true);
-        // Trigger high score state in Game component
-        window.dispatchEvent(new CustomEvent('show-high-score-entry'));
-      }, 3000);
-      
-      return () => clearTimeout(timer);
     }
   }, []);
+  
+  // Handler for "Next" button - redirects to high score entry
+  const handleNextClick = () => {
+    console.log("Next button clicked, redirecting to high score entry");
+    // Trigger high score state in Game component
+    window.dispatchEvent(new CustomEvent('show-high-score-entry'));
+  };
   return (
     <div 
       className="absolute inset-0 flex items-center justify-center"
@@ -66,20 +64,39 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
         </CardContent>
 
         <CardFooter className="flex flex-col gap-3 items-center">
-          <Button 
-            size="lg" 
-            onClick={onRestart} 
-            className="w-[200px] bg-amber-700 hover:bg-amber-600 text-white border border-amber-500"
-          >
-            Try Again
-          </Button>
-          <Button 
-            size="default" 
-            onClick={showLeaderboard} 
-            className="w-[200px] bg-amber-900 hover:bg-amber-800 text-white border border-amber-600"
-          >
-            View Leaderboard
-          </Button>
+          {qualifiesForHighScore ? (
+            <Button 
+              size="lg"
+              onClick={handleNextClick}
+              className="w-[200px] bg-green-700 hover:bg-green-600 text-white border border-green-500 animate-pulse"
+            >
+              Next
+            </Button>
+          ) : (
+            <Button 
+              size="lg" 
+              onClick={onRestart} 
+              className="w-[200px] bg-amber-700 hover:bg-amber-600 text-white border border-amber-500"
+            >
+              Try Again
+            </Button>
+          )}
+          
+          {!qualifiesForHighScore && (
+            <Button 
+              size="default" 
+              onClick={showLeaderboard} 
+              className="w-[200px] bg-amber-900 hover:bg-amber-800 text-white border border-amber-600"
+            >
+              View Leaderboard
+            </Button>
+          )}
+          
+          {qualifiesForHighScore && (
+            <p className="text-green-400 text-sm mt-2">
+              New high score! Click Next to enter your name
+            </p>
+          )}
         </CardFooter>
       </Card>
     </div>
