@@ -36,16 +36,16 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
     console.log("Key pressed:", e.key);
     
     // Allow only letters and numbers
-    if (/^[a-zA-Z0-9]$/.test(e.key) && playerName.length < 4) {
-      setPlayerName(prev => (prev + e.key).toUpperCase().slice(0, 4));
+    if (/^[a-zA-Z0-9]$/.test(e.key) && playerName.length < 5) {
+      setPlayerName(prev => (prev + e.key).toUpperCase().slice(0, 5));
     } else if (e.key === 'Backspace') {
       setPlayerName(prev => prev.slice(0, -1));
     }
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Restrict to 4 characters max, convert to uppercase
-    const name = e.target.value.slice(0, 4).toUpperCase();
+    // Restrict to 5 characters max, convert to uppercase
+    const name = e.target.value.slice(0, 5).toUpperCase();
     setPlayerName(name);
     console.log("Name changed to:", name);
   };
@@ -54,7 +54,7 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
     e.preventDefault();
     
     if (!playerName.trim()) {
-      setError('Please enter your name (1-4 letters)');
+      setError('Please enter your name (1-5 letters)');
       return;
     }
     
@@ -114,7 +114,7 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
         <h2 className="entry-title">WANTED!</h2>
         <p className="entry-score">Bounty: ${score}</p>
         <p className="entry-description">You've made it to the Most Wanted list!</p>
-        <p className="entry-description">Enter your outlaw name (up to 4 letters):</p>
+        <p className="entry-description">Enter your outlaw name (up to 5 letters):</p>
         
         <form onSubmit={handleSubmit} className="entry-form">
           <div className="input-container">
@@ -124,19 +124,19 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
               value={playerName}
               onChange={handleNameChange}
               onKeyDown={handleKeyPress}
-              maxLength={4}
-              placeholder="XXXX"
+              maxLength={5}
+              placeholder="XXXXX"
               disabled={submitting}
               className="name-input"
               autoFocus
               style={{ caretColor: 'transparent' }}
             />
-            <div className="char-count">{playerName.length}/4</div>
+            <div className="char-count">{playerName.length}/5</div>
           </div>
           
           {error && <p className="error-message">{error}</p>}
           {playerName.length === 0 && 
-            <p className="help-text">Enter your outlaw alias (4 letters max)</p>
+            <p className="help-text">Enter your outlaw alias (5 letters max)</p>
           }
           
           <div className="button-container">
