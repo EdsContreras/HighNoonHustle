@@ -1,288 +1,287 @@
-import p5 from 'p5';
-import { useCustomization } from '../lib/stores/useCustomization';
-import { 
-  Accessory, 
-  getAccessoryById 
-} from './data/accessories';
+import p5 from "p5";
+import {
+  PLAYER_WIDTH,
+  PLAYER_HEIGHT,
+  PLAYER_MOVE_COOLDOWN,
+  PLAYER_MOVE_SPEED,
+  KEYS,
+  GRID_CELLS_X,
+  GRID_CELLS_Y,
+} from "./constants";
+import { loadImage } from "./assets";
 
 export class Player {
   private p: p5;
-  private x: number;
-  private y: number;
-  private width: number;
-  private height: number;
-  private speed: number;
-  private image: p5.Image | null;
-  private isDead: boolean;
-  private flashEffect: boolean;
-  private flashStart: number;
-  private flashDuration: number;
-  private invincible: boolean;
-  private movementCooldown: number;
+  public x: number;
+  public y: number;
+  private targetX: number;
+  private targetY: number;
+  private cellWidth: number;
+  private cellHeight: number;
   private lastMoveTime: number;
-  private isMoving: boolean;
-  private deathAnimationStart: number | null;
-  
-  // Accessories related properties
-  private accessories: Map<string, p5.Image | null>;
-  private accessoriesLoaded: boolean;
+  private moving: boolean;
+  private image: p5.Image | null;
+  private invincible: boolean;
+  private invincibilityTime: number;
+  private invincibilityDuration: number; // Duration in milliseconds
+  private flashInterval: number; // How fast to flash in milliseconds
+  private lastFlashTime: number;
 
-  constructor(p: p5, x: number, y: number, width: number, height: number) {
+  constructor(
+    p: p5,
+    startX: number,
+    startY: number,
+    cellWidth: number,
+    cellHeight: number,
+  ) {
     this.p = p;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.speed = height; // One cell height per move
-    this.image = null;
-    this.isDead = false;
-    this.flashEffect = false;
-    this.flashStart = 0;
-    this.flashDuration = 2000; // 2 seconds of flashing after death
-    this.invincible = false;
-    this.movementCooldown = 100; // 100ms cooldown between moves
+    this.cellWidth = cellWidth;
+    this.cellHeight = cellHeight;
+
+    // Position player in grid cell coordinates
+    this.x = startX;
+    this.y = startY;
+    this.targetX = startX;
+    this.targetY = startY;
+
     this.lastMoveTime = 0;
-    this.isMoving = false;
-    this.deathAnimationStart = null;
+    this.moving = false;
+    this.image = null;
     
-    // Initialize accessories map
-    this.accessories = new Map();
-    this.accessoriesLoaded = false;
-    
-    // Load assets when constructing
+    // Invincibility settings
+    this.invincible = false;
+    this.invincibilityTime = 0;
+    this.invincibilityDuration = 2000; // 2 seconds of invincibility
+    this.flashInterval = 200; // Flash every 200ms
+    this.lastFlashTime = 0;
+
     this.loadAssets();
   }
 
   private async loadAssets() {
     try {
-      // Load the base player image
-      this.image = await this.p.loadImage('/assets/player.png');
-      
-      // Load the player's equipped accessories
-      await this.loadAccessories();
-      
-      console.log('Player assets loaded successfully');
+      this.image = await loadImage(this.p, "/assets/outlaw.png");
     } catch (error) {
-      console.error('Error loading player assets:', error);
-    }
-  }
-  
-  private async loadAccessories() {
-    try {
-      // Get the customization state
-      const customization = useCustomization.getState();
-      
-      // Loop through each accessory type and load images
-      for (const [type, id] of Object.entries(customization.selectedAccessories)) {
-        if (id) {
-          const accessory = getAccessoryById(id);
-          if (accessory) {
-            try {
-              // Load the accessory image
-              const image = await this.p.loadImage(accessory.imagePath);
-              this.accessories.set(id, image);
-            } catch (error) {
-              console.error(`Error loading accessory ${id}:`, error);
-              this.accessories.set(id, null);
-            }
-          }
-        }
-      }
-      
-      this.accessoriesLoaded = true;
-    } catch (error) {
-      console.error('Error loading accessories:', error);
-    }
-  }
-
-  public draw(cameraOffsetY: number = 0) {
-    if (this.isDead && this.deathAnimationStart) {
-      // Handle death animation (spinning and fading out)
-      const elapsedTime = this.p.millis() - this.deathAnimationStart;
-      const progress = Math.min(elapsedTime / 1000, 1); // 1 second animation
-      
-      this.p.push();
-      this.p.translate(this.x + this.width / 2, this.y - cameraOffsetY + this.height / 2);
-      this.p.rotate(progress * this.p.PI * 4); // Spin 2 full rotations
-      this.p.scale(1 - progress * 0.5); // Shrink a bit
-      this.p.tint(255, 255, 255, 255 * (1 - progress)); // Fade out
-      
-      if (this.image) {
-        this.p.image(
-          this.image,
-          -this.width / 2,
-          -this.height / 2,
-          this.width,
-          this.height
-        );
-      } else {
-        // Fallback if image isn't loaded
-        this.p.fill(139, 69, 19); // Brown
-        this.p.rect(-this.width / 2, -this.height / 2, this.width, this.height);
-      }
-      
-      this.p.pop();
-      return;
-    }
-    
-    // Normal drawing (possibly with flash effect)
-    const shouldDraw = !this.flashEffect || (this.p.millis() % 200 < 100);
-    
-    if (shouldDraw) {
-      this.p.push();
-      
-      // Draw the base player
-      if (this.image) {
-        this.p.image(
-          this.image,
-          this.x,
-          this.y - cameraOffsetY,
-          this.width,
-          this.height
-        );
-      } else {
-        // Fallback if image isn't loaded
-        this.p.fill(139, 69, 19); // Brown
-        this.p.rect(this.x, this.y - cameraOffsetY, this.width, this.height);
-      }
-      
-      // Draw accessories if loaded
-      if (this.accessoriesLoaded) {
-        const customization = useCustomization.getState();
-        
-        // Draw all accessories
-        Object.entries(customization.selectedAccessories).forEach(([type, id]) => {
-          if (id) {
-            const accessory = getAccessoryById(id);
-            const accessoryImage = this.accessories.get(id);
-            
-            if (accessory && accessoryImage) {
-              // Draw the accessory with the specified position
-              const { offsetX, offsetY, scale } = accessory.position;
-              
-              this.p.image(
-                accessoryImage,
-                this.x + offsetX,
-                this.y - cameraOffsetY + offsetY,
-                accessoryImage.width * scale,
-                accessoryImage.height * scale
-              );
-            }
-          }
-        });
-      }
-      
-      this.p.pop();
-    }
-    
-    // Update flash effect
-    if (this.flashEffect && this.p.millis() - this.flashStart > this.flashDuration) {
-      this.flashEffect = false;
-      this.invincible = false;
+      console.error("Failed to load player image:", error);
     }
   }
 
   public update() {
-    // Nothing to update in normal state
-    if (this.isDead) {
-      // Handle any death-related updates here
+    // Move the player towards the target position
+    const currentX = this.x;
+    const currentY = this.y;
+    const targetX = this.targetX;
+    const targetY = this.targetY;
+
+    const distX = targetX - currentX;
+    const distY = targetY - currentY;
+    
+    // Calculate total distance to target
+    const totalDist = Math.sqrt(distX * distX + distY * distY);
+    
+    if (totalDist > 0.001) { // More precise threshold
+      // Normalize movement vector for consistent diagonal speed
+      const moveX = (distX / totalDist) * PLAYER_MOVE_SPEED;
+      const moveY = (distY / totalDist) * PLAYER_MOVE_SPEED;
+      
+      this.x += moveX;
+      this.y += moveY;
+      this.moving = true;
+      
+      // Improved snap threshold - if we're close enough to the target, 
+      // snap directly to it to prevent floating point imprecision issues
+      if (totalDist < 0.05) {
+        this.x = this.targetX;
+        this.y = this.targetY;
+        this.moving = false;
+        // Log completion of move
+        console.log("Player reached target position:", this.x, this.y);
+      }
+    } else {
+      // If we're already at the target (or very close), make sure we're exactly at
+      // the target position and mark as not moving
+      this.x = this.targetX;
+      this.y = this.targetY;
+      this.moving = false;
+    }
+    
+    // Check if invincibility has expired
+    if (this.invincible) {
+      const currentTime = this.p.millis();
+      if (currentTime - this.invincibilityTime > this.invincibilityDuration) {
+        this.invincible = false;
+        console.log("Player invincibility ended");
+      }
     }
   }
 
-  public moveUp() {
+  public draw() {
+    const pixelX = this.x * this.cellWidth;
+    const pixelY = this.y * this.cellHeight;
+
+    this.p.push();
+    this.p.translate(pixelX + this.cellWidth / 2, pixelY + this.cellHeight / 2);
+    
+    // Handle flashing effect when invincible
+    let visible = true;
+    if (this.invincible) {
+      const currentTime = this.p.millis();
+      
+      // Only draw player every other flash interval
+      if (currentTime - this.lastFlashTime > this.flashInterval) {
+        this.lastFlashTime = currentTime;
+        visible = !visible; // Toggle visibility for flashing effect
+      }
+      
+      // Apply a white tint when invincible (alternating with normal appearance)
+      if (visible) {
+        this.p.tint(255, 255, 255, 180); // Semi-transparent white
+      }
+    }
+    
+    // Only draw if visible (for flashing effect)
+    if (visible) {
+      // Draw the player sprite
+      if (this.image) {
+        this.p.imageMode(this.p.CENTER);
+        this.p.image(this.image, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+      } else {
+        // Fallback if image isn't loaded
+        this.p.fill(200, 100, 50);
+        this.p.rectMode(this.p.CENTER);
+        this.p.rect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+      }
+    }
+    
+    // Reset tint
+    this.p.noTint();
+    
+    // Uncomment for debugging to show the hitbox
+    // const hitbox = this.getRect();
+    // this.p.noFill();
+    // this.p.stroke(255, 0, 0);
+    // this.p.rectMode(this.p.CORNER);
+    // this.p.rect(
+    //   hitbox.x - pixelX - this.cellWidth / 2, 
+    //   hitbox.y - pixelY - this.cellHeight / 2, 
+    //   hitbox.width, 
+    //   hitbox.height
+    // );
+
+    this.p.pop();
+  }
+
+  public handleKeyPress(keyCode: number) {
     const currentTime = this.p.millis();
-    if (currentTime - this.lastMoveTime < this.movementCooldown || this.isDead) return;
+
+    // Check for cooldown AND if player is already moving
+    if (currentTime - this.lastMoveTime < PLAYER_MOVE_COOLDOWN || this.moving) {
+      return false;
+    }
+
+    let moved = false;
+    const oldX = this.targetX;
+    const oldY = this.targetY;
+
+    // Prevent any movement if the player is not exactly at their target position
+    // This ensures we only process movement commands when the player is ready to move
+    const distanceToTarget = Math.abs(this.x - this.targetX) + Math.abs(this.y - this.targetY);
+    if (distanceToTarget > 0.01) {
+      return false;
+    }
+
+    // Handle movement keys
+    if ((keyCode === KEYS.UP || keyCode === KEYS.W) && this.targetY > 0) {
+      this.targetY -= 1;
+      moved = true;
+    } else if (
+      (keyCode === KEYS.DOWN || keyCode === KEYS.S) &&
+      this.targetY < GRID_CELLS_Y - 1
+    ) {
+      this.targetY += 1;
+      moved = true;
+    } else if (
+      (keyCode === KEYS.LEFT || keyCode === KEYS.A) &&
+      this.targetX > 0
+    ) {
+      this.targetX -= 1;
+      moved = true;
+    } else if (
+      (keyCode === KEYS.RIGHT || keyCode === KEYS.D) &&
+      this.targetX < GRID_CELLS_X - 1
+    ) {
+      this.targetX += 1;
+      moved = true;
+    }
+
+    if (moved) {
+      this.lastMoveTime = currentTime;
+      console.log("Player moving to:", this.targetX, this.targetY);
+    }
+
+    return moved;
+  }
+
+  public getRect() {
+    // Create a smaller hitbox for the player (70% of the actual size)
+    // and center it within the cell to avoid false collisions
+    const hitboxWidth = PLAYER_WIDTH * 0.7;
+    const hitboxHeight = PLAYER_HEIGHT * 0.7;
     
-    this.y -= this.speed;
-    this.lastMoveTime = currentTime;
-    this.isMoving = true;
+    return {
+      x: (this.x * this.cellWidth) + (PLAYER_WIDTH - hitboxWidth) / 2,
+      y: (this.y * this.cellHeight) + (PLAYER_HEIGHT - hitboxHeight) / 2,
+      width: hitboxWidth,
+      height: hitboxHeight,
+    };
   }
 
-  public moveDown() {
-    const currentTime = this.p.millis();
-    if (currentTime - this.lastMoveTime < this.movementCooldown || this.isDead) return;
+  public reset(startX: number, startY: number) {
+    this.x = startX;
+    this.y = startY;
+    this.targetX = startX;
+    this.targetY = startY;
+    this.moving = false;
     
-    this.y += this.speed;
-    this.lastMoveTime = currentTime;
-    this.isMoving = true;
+    // Reset invincibility state when position is reset
+    this.invincible = false;
   }
 
-  public moveLeft() {
-    const currentTime = this.p.millis();
-    if (currentTime - this.lastMoveTime < this.movementCooldown || this.isDead) return;
-    
-    this.x -= this.speed;
-    this.lastMoveTime = currentTime;
-    this.isMoving = true;
+  public handleResize(cellWidth: number, cellHeight: number) {
+    this.cellWidth = cellWidth;
+    this.cellHeight = cellHeight;
   }
 
-  public moveRight() {
-    const currentTime = this.p.millis();
-    if (currentTime - this.lastMoveTime < this.movementCooldown || this.isDead) return;
-    
-    this.x += this.speed;
-    this.lastMoveTime = currentTime;
-    this.isMoving = true;
+  public isMoving(): boolean {
+    return this.moving;
   }
 
-  public getPosition() {
-    return { x: this.x, y: this.y, width: this.width, height: this.height };
+  public getGridPosition() {
+    return {
+      x: Math.round(this.x),
+      y: Math.round(this.y),
+    };
   }
-
-  public setPosition(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
-
-  public die() {
-    if (this.invincible) return; // Can't die while invincible
-    
-    this.isDead = true;
-    this.deathAnimationStart = this.p.millis();
-  }
-
-  public reset() {
-    this.isDead = false;
-    this.flashEffect = true;
-    this.flashStart = this.p.millis();
+  
+  /**
+   * Start the invincibility effect
+   * @param duration Optional override for the invincibility duration in milliseconds
+   */
+  public makeInvincible(duration?: number) {
     this.invincible = true;
-    this.deathAnimationStart = null;
+    this.invincibilityTime = this.p.millis();
+    
+    if (duration !== undefined) {
+      this.invincibilityDuration = duration;
+    }
+    
+    console.log("Player is now invincible for", this.invincibilityDuration / 1000, "seconds");
   }
-
-  public isMovingState() {
-    const moving = this.isMoving;
-    this.isMoving = false; // Reset for next check
-    return moving;
-  }
-
-  public isDeadState() {
-    return this.isDead;
-  }
-
-  public isInvincible() {
+  
+  /**
+   * Check if the player is currently invincible
+   */
+  public isInvincible(): boolean {
     return this.invincible;
-  }
-  
-  // Update player accessories when customization changes
-  public updateAccessories() {
-    this.accessoriesLoaded = false;
-    this.loadAccessories();
-  }
-  
-  public handleResize(newWidth: number, newHeight: number) {
-    // Calculate scale factors
-    const widthScale = newWidth / this.width;
-    const heightScale = newHeight / this.height;
-    
-    // Update dimensions
-    this.width = newWidth;
-    this.height = newHeight;
-    
-    // Update speed based on new cell height
-    this.speed = newHeight;
-    
-    // Scale position to maintain relative location
-    this.x *= widthScale;
-    this.y *= heightScale;
   }
 }

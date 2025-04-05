@@ -3,6 +3,7 @@ import { Player } from './Player';
 import { Lane } from './Lane';
 import { Goal } from './Goal';
 import { Coin } from './Coin';
+import { SheriffBadge } from './SheriffBadge';
 import { 
   GRID_CELLS_X,
   GRID_CELLS_Y,
@@ -11,9 +12,14 @@ import {
   POINTS_FOR_CROSSING,
   POINTS_FOR_MONEYBAG,
   POINTS_FOR_COIN,
+  POINTS_FOR_BADGE,
   COIN_WIDTH,
   COIN_HEIGHT,
   COINS_PER_LANE,
+  SHERIFF_BADGE_WIDTH,
+  SHERIFF_BADGE_HEIGHT,
+  SHERIFF_BADGES_PER_LEVEL,
+  INVINCIBILITY_DURATION,
   TIME_BONUS_FACTOR,
   KEYS,
   LEVELS,
@@ -37,6 +43,7 @@ export class GameManager {
   private lanes: Lane[];
   private goals: Goal[];
   private coins: Coin[];
+  private sheriffBadges: SheriffBadge[]; // Add sheriff badges array
   private cellWidth: number;
   private cellHeight: number;
   private lives: number;
@@ -55,6 +62,7 @@ export class GameManager {
     this.lanes = [];
     this.goals = [];
     this.coins = [];
+    this.sheriffBadges = []; // Initialize sheriff badges array
     this.cellWidth = 0;
     this.cellHeight = 0;
     this.lives = STARTING_LIVES;
@@ -104,6 +112,7 @@ export class GameManager {
     this.lanes = [];
     this.goals = [];
     this.coins = [];
+    this.sheriffBadges = []; // Reset sheriff badges
     this.cameraOffsetY = 0; // Reset camera position
     this.targetCameraY = 0; // Reset target camera position
     this.levelStartTime = this.p.millis();
@@ -219,6 +228,44 @@ export class GameManager {
     }
     
     console.log(`Created ${goalCount} money bags for level ${this.level}`); // Debug info
+    
+    // Create sheriff badges for invincibility powerups
+    const badgeCount = Math.min(SHERIFF_BADGES_PER_LEVEL, levelConfig.lanes.length - 2);
+    
+    // Create a pool of potential badge positions (different from coin positions)
+    const potentialBadgePositions = [];
+    
+    // Only use road lanes (more challenging to get the badge)
+    for (let i = 0; i < levelConfig.lanes.length; i++) {
+      const laneConfig = levelConfig.lanes[i];
+      if (laneConfig.type === 'road' && i > 0 && i < levelConfig.lanes.length - 1) {
+        const laneY = i * laneHeight + laneHeight / 2;
+        
+        // Add multiple positions across this lane
+        for (let gridX = 0; gridX < GRID_CELLS_X; gridX += 2) { // Space them out
+          potentialBadgePositions.push({
+            x: gridX * this.cellWidth + this.cellWidth / 2,
+            y: laneY
+          });
+        }
+      }
+    }
+    
+    // Shuffle positions and place badges
+    this.shuffleArray(potentialBadgePositions);
+    
+    for (let i = 0; i < Math.min(badgeCount, potentialBadgePositions.length); i++) {
+      const position = potentialBadgePositions[i];
+      this.sheriffBadges.push(new SheriffBadge(
+        this.p, 
+        position.x, 
+        position.y, 
+        SHERIFF_BADGE_WIDTH, 
+        SHERIFF_BADGE_HEIGHT
+      ));
+    }
+    
+    console.log(`Created ${Math.min(badgeCount, potentialBadgePositions.length)} sheriff badges for level ${this.level}`);
   }
   
   // Camera smoothing factor controls how quickly the camera follows the player
@@ -321,6 +368,37 @@ export class GameManager {
           }
         }
       }
+      
+      // Check for sheriff badge collisions - always check, even when moving
+      for (let i = this.sheriffBadges.length - 1; i >= 0; i--) {
+        const badge = this.sheriffBadges[i];
+        
+        // Only check collision if badge hasn't been collected yet
+        if (!badge.isCollected()) {
+          if (badge.contains(
+            playerRect.x, 
+            playerRect.y, 
+            playerRect.width, 
+            playerRect.height
+          )) {
+            console.log("Collecting sheriff badge at", badge.getPosition(), "player moving:", this.player.isMoving());
+            
+            // Collect the badge
+            badge.collect();
+            
+            // Add points for collecting badge
+            this.score += POINTS_FOR_BADGE;
+            this.callbacks.updateScore(this.score);
+            
+            // Make player invincible for set duration
+            this.player.makeInvincible(INVINCIBILITY_DURATION);
+            
+            // Play success sound
+            const { playSuccess } = useAudio.getState();
+            playSuccess();
+          }
+        }
+      }
     }
     
     // Check if player reached a money bag
@@ -401,6 +479,11 @@ export class GameManager {
     // Draw coins (always draw all coins - the Coin class will determine if it should be visible)
     for (const coin of this.coins) {
       coin.draw(this.cameraOffsetY);
+    }
+    
+    // Draw sheriff badges
+    for (const badge of this.sheriffBadges) {
+      badge.draw(this.cameraOffsetY);
     }
     
     // Draw player
@@ -539,6 +622,11 @@ export class GameManager {
     for (const coin of this.coins) {
       coin.handleResize(this.cellWidth, this.cellHeight);
     }
+    
+    // Update sheriff badges
+    for (const badge of this.sheriffBadges) {
+      badge.handleResize(this.cellWidth, this.cellHeight);
+    }
   }
   
   // Helper method to shuffle an array (Fisher-Yates algorithm)
@@ -548,12 +636,5 @@ export class GameManager {
       [array[i], array[j]] = [array[j], array[i]]; // Swap elements
     }
     return array;
-  }
-  
-  // Public method to update player accessories
-  public updatePlayerAccessories() {
-    if (this.player) {
-      this.player.updateAccessories();
-    }
   }
 }

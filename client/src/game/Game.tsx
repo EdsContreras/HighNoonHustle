@@ -10,15 +10,12 @@ import { useAudio } from '../lib/stores/useAudio';
 import { KEYS, PLAYER_MOVE_COOLDOWN, GameState } from './constants';
 import HighScoreEntry from '../components/HighScoreEntry';
 import LeaderboardDisplay from '../components/LeaderboardDisplay';
-import CustomizationScreen from '../components/CustomizationScreen';
 import { isHighScore } from '../lib/leaderboard';
-import { useCustomization } from '../lib/stores/useCustomization';
 import '../styles/leaderboard.css';
-import '../styles/customization.css';
 
 // Game component that manages the p5.js sketch
-// Extended game states to include high score, leaderboard, and customization
-type GameStateType = 'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory' | 'highScore' | 'leaderboard' | 'customization';
+// Extended game states to include high score and leaderboard
+type GameStateType = 'start' | 'playing' | 'gameOver' | 'levelComplete' | 'victory' | 'highScore' | 'leaderboard';
 
 const Game = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
@@ -455,25 +452,6 @@ const Game = () => {
       setGameState('gameOver');
     }
   };
-  
-  // Show customization screen
-  const showCustomization = () => {
-    // Pause game and show customization
-    setGameState('customization');
-  };
-  
-  // Hide customization screen and return to game
-  const hideCustomization = () => {
-    // Return to start screen if we were there
-    if (gameStateRef.current === 'customization') {
-      setGameState('start');
-    }
-    
-    // Refresh player model if in a game manager
-    if (gameManagerRef.current) {
-      gameManagerRef.current.updatePlayerAccessories();
-    }
-  };
 
   return (
     <div className="w-full h-full flex flex-col relative">
@@ -528,34 +506,7 @@ const Game = () => {
         {gameState === 'leaderboard' && (
           <LeaderboardDisplay onBack={hideLeaderboard} />
         )}
-        
-        {gameState === 'customization' && (
-          <CustomizationScreen onBack={hideCustomization} />
-        )}
       </div>
-      
-      {/* Add a customization button on the start screen */}
-      {gameState === 'start' && (
-        <button 
-          className="customize-button" 
-          onClick={showCustomization}
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            right: '20px',
-            padding: '10px 15px',
-            backgroundColor: '#8b4513',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            zIndex: 10
-          }}
-        >
-          Customize Cowboy
-        </button>
-      )}
     </div>
   );
 };
