@@ -56,69 +56,81 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
   };
 
   return (
-    <div className="leaderboard-container">
-      <div className="most-wanted-header">
-        <img 
-          src="/assets/MostWanted.png" 
-          alt="The Most Wanted Outlaws" 
-          className="most-wanted-image" 
-        />
-      </div>
-      <h2 className="leaderboard-title">TOP OUTLAWS</h2>
+    <div 
+      className="absolute inset-0 flex items-center justify-center"
+      style={{
+        backgroundImage: 'url(/assets/IntroBackground.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Semi-transparent overlay to improve text legibility */}
+      <div className="absolute inset-0 bg-black/20" />
       
-      {loading ? (
-        <p className="loading-text">Loading high scores...</p>
-      ) : error ? (
-        <p className="error-text">{error}</p>
-      ) : (
-        <div className="scores-table-container">
-          <table className="scores-table">
-            <thead>
-              <tr>
-                <th className="rank-column">RANK</th>
-                <th className="name-column">NAME</th>
-                <th className="score-column">BOUNTY</th>
-                <th className="level-column">LEVEL</th>
-              </tr>
-            </thead>
-            <tbody>
-              {highScores.map((score, index) => (
-                <tr key={score.id} className={playerScore === score.score ? 'your-score' : ''}>
-                  <td className="rank-column">{index + 1}</td>
-                  <td className="name-column">{score.playerName}</td>
-                  <td className="score-column">${score.score}</td>
-                  <td className="level-column">{score.level}</td>
-                </tr>
-              ))}
-              {highScores.length === 0 && (
+      <div className="leaderboard-container bg-black/50 border-2 border-amber-800 z-10">
+        <div className="most-wanted-header">
+          <img 
+            src="/assets/MostWanted.png" 
+            alt="The Most Wanted Outlaws" 
+            className="most-wanted-image" 
+          />
+        </div>
+        <h2 className="leaderboard-title">TOP OUTLAWS</h2>
+        
+        {loading ? (
+          <p className="loading-text">Loading high scores...</p>
+        ) : error ? (
+          <p className="error-text">{error}</p>
+        ) : (
+          <div className="scores-table-container">
+            <table className="scores-table">
+              <thead>
                 <tr>
-                  <td colSpan={4} className="no-scores">No outlaws yet. Be the first to make the wanted list!</td>
+                  <th className="rank-column">RANK</th>
+                  <th className="name-column">NAME</th>
+                  <th className="score-column">BOUNTY</th>
+                  <th className="level-column">LEVEL</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-      
-      {playerScore && (
-        <div className="player-score-info">
-          <p>Your bounty: ${playerScore}</p>
-          {wouldMakeLeaderboard() ? (
-            <p className="make-leaderboard">You're on the WANTED list!</p>
-          ) : (
-            <p className="no-leaderboard">Commit more crimes to make the WANTED list!</p>
-          )}
-        </div>
-      )}
-      
-      {(onClose || onBack) && (
-        <button 
-          className="close-button" 
-          onClick={onBack || onClose}
-        >
-          {onBack ? 'Back' : 'Close'}
-        </button>
-      )}
+              </thead>
+              <tbody>
+                {highScores.map((score, index) => (
+                  <tr key={score.id} className={playerScore === score.score ? 'your-score' : ''}>
+                    <td className="rank-column">{index + 1}</td>
+                    <td className="name-column">{score.playerName}</td>
+                    <td className="score-column">${score.score}</td>
+                    <td className="level-column">{score.level}</td>
+                  </tr>
+                ))}
+                {highScores.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="no-scores">No outlaws yet. Be the first to make the wanted list!</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        {playerScore && (
+          <div className="player-score-info">
+            <p>Your bounty: ${playerScore}</p>
+            {wouldMakeLeaderboard() ? (
+              <p className="make-leaderboard">You're on the WANTED list!</p>
+            ) : (
+              <p className="no-leaderboard">Commit more crimes to make the WANTED list!</p>
+            )}
+          </div>
+        )}
+        
+        {(onClose || onBack) && (
+          <button 
+            className="close-button" 
+            onClick={onBack || onClose}
+          >
+            {onBack ? 'Back' : 'Close'}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

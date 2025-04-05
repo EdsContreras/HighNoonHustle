@@ -97,68 +97,81 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
   }
 
   return (
-    <div className="high-score-entry" onClick={() => inputRef.current?.focus()}>
-      <div className="most-wanted-header">
-        <img 
-          src="/assets/MostWanted.png" 
-          alt="The Most Wanted Outlaws" 
-          className="most-wanted-image-small" 
-        />
-      </div>
-      <h2 className="entry-title">WANTED!</h2>
-      <p className="entry-score">Bounty: ${score}</p>
-      <p className="entry-description">You've made it to the Most Wanted list!</p>
-      <p className="entry-description">Enter your outlaw name (up to 4 letters):</p>
+    <div 
+      className="absolute inset-0 flex items-center justify-center"
+      style={{
+        backgroundImage: 'url(/assets/IntroBackground.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {/* Semi-transparent overlay to improve text legibility */}
+      <div className="absolute inset-0 bg-black/20" />
       
-      <form onSubmit={handleSubmit} className="entry-form">
-        <div className="input-container">
-          <input
-            ref={inputRef}
-            type="text"
-            value={playerName}
-            onChange={handleNameChange}
-            onKeyDown={handleKeyPress}
-            maxLength={4}
-            placeholder="XXXX"
-            disabled={submitting}
-            className="name-input"
-            autoFocus
-            style={{ caretColor: 'transparent' }}
+      <div className="high-score-entry bg-black/50 border-2 border-amber-800 z-10">
+        <div className="most-wanted-header">
+          <img 
+            src="/assets/MostWanted.png" 
+            alt="The Most Wanted Outlaws" 
+            className="most-wanted-image-small" 
           />
-          <div className="char-count">{playerName.length}/4</div>
         </div>
+        <h2 className="entry-title">WANTED!</h2>
+        <p className="entry-score">Bounty: ${score}</p>
+        <p className="entry-description">You've made it to the Most Wanted list!</p>
+        <p className="entry-description">Enter your outlaw name (up to 4 letters):</p>
         
-        {error && <p className="error-message">{error}</p>}
-        {playerName.length === 0 && 
-          <p className="help-text">Enter your outlaw alias (4 letters max)</p>
-        }
-        
-        <div className="button-container">
-          <button 
-            type="submit" 
-            disabled={submitting || playerName.length === 0} 
-            className="submit-button"
-          >
-            {submitting ? 'Posting Wanted...' : 'Post Bounty'}
-          </button>
+        <form onSubmit={handleSubmit} className="entry-form">
+          <div className="input-container">
+            <input
+              ref={inputRef}
+              type="text"
+              value={playerName}
+              onChange={handleNameChange}
+              onKeyDown={handleKeyPress}
+              maxLength={4}
+              placeholder="XXXX"
+              disabled={submitting}
+              className="name-input"
+              autoFocus
+              style={{ caretColor: 'transparent' }}
+            />
+            <div className="char-count">{playerName.length}/4</div>
+          </div>
           
-          <button 
-            type="button" 
-            onClick={() => {
-              // Call onComplete if provided, otherwise call onClose
-              if (onComplete) {
-                onComplete();
-              } else if (onClose) {
-                onClose();
-              }
-            }} 
-            disabled={submitting}
-            className="skip-button"
-          >
-            Remain Anonymous
-          </button>
-        </div>
-      </form>
+          {error && <p className="error-message">{error}</p>}
+          {playerName.length === 0 && 
+            <p className="help-text">Enter your outlaw alias (4 letters max)</p>
+          }
+          
+          <div className="button-container">
+            <button 
+              type="submit" 
+              disabled={submitting || playerName.length === 0} 
+              className="submit-button"
+            >
+              {submitting ? 'Posting Wanted...' : 'Post Bounty'}
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={() => {
+                // Call onComplete if provided, otherwise call onClose
+                if (onComplete) {
+                  onComplete();
+                } else if (onClose) {
+                  onClose();
+                }
+              }} 
+              disabled={submitting}
+              className="skip-button"
+            >
+              Remain Anonymous
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
