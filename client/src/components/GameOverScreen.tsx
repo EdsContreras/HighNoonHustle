@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skull } from "lucide-react";
@@ -14,6 +14,26 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
   onRestart,
   showLeaderboard,
 }) => {
+  const [redirectingToHighScore, setRedirectingToHighScore] = useState(false);
+  
+  // Check if player qualifies for high score entry
+  useEffect(() => {
+    const qualifiesForHighScore = sessionStorage.getItem('qualifiesForHighScore') === 'true';
+    
+    if (qualifiesForHighScore) {
+      console.log("Game over screen: Player qualifies for high score entry");
+      
+      // Show game over screen for 3 seconds, then redirect to high score entry
+      const timer = setTimeout(() => {
+        console.log("Redirecting to high score entry after game over screen");
+        setRedirectingToHighScore(true);
+        // Trigger high score state in Game component
+        window.dispatchEvent(new CustomEvent('show-high-score-entry'));
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
   return (
     <div 
       className="absolute inset-0 flex items-center justify-center"

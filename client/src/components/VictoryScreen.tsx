@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
 import { PartyPopper, Trophy } from 'lucide-react';
@@ -14,6 +14,26 @@ const VictoryScreen: React.FC<VictoryScreenProps> = ({
   onRestart,
   showLeaderboard
 }) => {
+  const [redirectingToHighScore, setRedirectingToHighScore] = useState(false);
+  
+  // Check if player qualifies for high score entry
+  useEffect(() => {
+    const qualifiesForHighScore = sessionStorage.getItem('qualifiesForHighScore') === 'true';
+    
+    if (qualifiesForHighScore) {
+      console.log("Victory screen: Player qualifies for high score entry");
+      
+      // Show victory screen for 3 seconds, then redirect to high score entry
+      const timer = setTimeout(() => {
+        console.log("Redirecting to high score entry after victory screen");
+        setRedirectingToHighScore(true);
+        // Trigger high score state in Game component
+        window.dispatchEvent(new CustomEvent('show-high-score-entry'));
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
   return (
     <div 
       className="absolute inset-0 flex items-center justify-center"

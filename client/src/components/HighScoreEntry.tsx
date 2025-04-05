@@ -100,7 +100,8 @@ const HighScoreEntry: React.FC<HighScoreEntryProps> = ({ score, level, onClose, 
     <div className="high-score-entry" onClick={() => inputRef.current?.focus()}>
       <h2 className="entry-title">CONGRATULATIONS!</h2>
       <p className="entry-score">Your score: {score}</p>
-      <p className="entry-description">Enter your name for the leaderboard:</p>
+      <p className="entry-description">Your score made it to the leaderboard!</p>
+      <p className="entry-description">Enter your name (up to 4 letters):</p>
       
       <form onSubmit={handleSubmit} className="entry-form">
         <div className="input-container">

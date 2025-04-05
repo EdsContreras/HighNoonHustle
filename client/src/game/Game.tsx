@@ -199,11 +199,16 @@ const Game = () => {
           try {
             const qualifiesForHighScore = await isHighScore(score);
             console.log("High score qualification check result:", qualifiesForHighScore);
+            
+            // Always show game over screen first
+            setGameState('gameOver');
+            
+            // Store high score status for later use
             if (qualifiesForHighScore === true) {
-              console.log("New high score! Showing entry screen");
-              setGameState('highScore');
+              console.log("New high score! Will show entry screen after game over");
+              sessionStorage.setItem('qualifiesForHighScore', 'true');
             } else {
-              setGameState('gameOver');
+              sessionStorage.removeItem('qualifiesForHighScore');
             }
           } catch (error) {
             console.error("Error checking high score:", error);
@@ -231,11 +236,16 @@ const Game = () => {
           try {
             const qualifiesForHighScore = await isHighScore(finalScore);
             console.log("High score qualification check result:", qualifiesForHighScore);
+            
+            // Always show victory screen first
+            setGameState('victory');
+            
+            // Store high score status for later use
             if (qualifiesForHighScore === true) {
-              console.log("New high score! Showing entry screen");
-              setGameState('highScore');
+              console.log("New high score! Will show entry screen after victory");
+              sessionStorage.setItem('qualifiesForHighScore', 'true');
             } else {
-              setGameState('victory');
+              sessionStorage.removeItem('qualifiesForHighScore');
             }
           } catch (error) {
             console.error("Error checking high score:", error);
