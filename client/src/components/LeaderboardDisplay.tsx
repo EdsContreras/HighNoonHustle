@@ -13,12 +13,14 @@ export interface HighScore {
 interface LeaderboardDisplayProps {
   onClose?: () => void;
   onBack?: () => void;
+  onReturnToStart?: () => void; // New prop for returning to start screen
   playerScore?: number;
 }
 
 const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({ 
   onClose,
   onBack,
+  onReturnToStart,
   playerScore 
 }) => {
   const [highScores, setHighScores] = useState<HighScore[]>([]);
@@ -116,14 +118,25 @@ const LeaderboardDisplay: React.FC<LeaderboardDisplayProps> = ({
           </div>
         )}
         
-        {(onClose || onBack) && (
-          <button 
-            className="close-button" 
-            onClick={onBack || onClose}
-          >
-            {onBack ? 'Back' : 'Close'}
-          </button>
-        )}
+        <div className="button-container">
+          {(onClose || onBack) && (
+            <button 
+              className="close-button" 
+              onClick={onBack || onClose}
+            >
+              {onBack ? 'Back' : 'Close'}
+            </button>
+          )}
+          
+          {onReturnToStart && (
+            <button 
+              className="start-button" 
+              onClick={onReturnToStart}
+            >
+              Return to Saloon
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

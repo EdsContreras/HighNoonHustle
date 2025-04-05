@@ -474,6 +474,11 @@ const Game = () => {
       setGameState('gameOver');
     }
   };
+  
+  // Function to return directly to start screen from anywhere
+  const returnToStartScreen = () => {
+    setGameState('start');
+  };
 
   return (
     <div className="w-full h-full flex flex-col relative">
@@ -526,7 +531,11 @@ const Game = () => {
         )}
         
         {gameState === 'leaderboard' && (
-          <LeaderboardDisplay onBack={hideLeaderboard} />
+          <LeaderboardDisplay 
+            onBack={hideLeaderboard} 
+            onReturnToStart={returnToStartScreen}
+            playerScore={score} 
+          />
         )}
       </div>
     </div>
