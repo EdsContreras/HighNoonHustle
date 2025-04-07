@@ -237,9 +237,9 @@ export class Coin {
     // Determine if this is a bottom area coin
     const isBottomAreaCoin = this.y > 300;
     
-    // Use a glow that matches the actual hitbox size
-    // Updated to match the new balanced hitbox values
-    const glowExpandFactor = isBottomAreaCoin ? 1.3 : 1.45; // Smaller for bottom coins
+    // Use a glow that accurately represents the actual hitbox
+    // Updated to match the new much stricter hitbox values for bottom coins
+    const glowExpandFactor = isBottomAreaCoin ? 1.0 : 1.45; // No expansion for bottom coins
     
     // Draw the glow circle - matches the expanded hitbox
     this.p.noStroke();
@@ -281,11 +281,11 @@ export class Coin {
     // Screen is typically 600 pixels tall, lower half would be y > 300
     const isBottomAreaCoin = this.y > 300;
     
-    // BALANCED HITBOX SIZES: Make coin collection more reliable but not too generous
-    // Bottom area coins have a more strict hitbox to avoid accidental collection
-    // Upper coins have a slightly larger hitbox for better visibility
-    // Slightly smaller than sheriff badges for more precise collection
-    const expandFactor = isBottomAreaCoin ? 1.3 : 1.45;
+    // MUCH STRICTER HITBOX SIZES: Prevent accidental collection of bottom area coins
+    // Bottom area coins now have a very strict hitbox to prevent accidental collection
+    // Upper coins maintain their slightly larger hitbox for better visibility
+    // Bottom hitboxes are now much smaller than sheriff badges for more precision
+    const expandFactor = isBottomAreaCoin ? 1.0 : 1.45;
     
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
@@ -317,10 +317,10 @@ export class Coin {
     const dx = Math.abs(playerCenterX - this.x);
     const dy = Math.abs(playerCenterY - this.y);
     
-    // For bottom coins, use a more strict collection threshold
-    // More strict threshold for bottom coins to avoid accidental collection
+    // For bottom coins, use a much more strict collection threshold
+    // Extremely strict threshold for bottom coins to avoid any accidental collection
     // Keep the upper coin threshold the same
-    const centerProximityFactor = isBottomAreaCoin ? 0.4 : 0.45;
+    const centerProximityFactor = isBottomAreaCoin ? 0.2 : 0.45;
     
     // Set threshold for collection based on combined dimensions and location
     const collectionThresholdX = (this.width + playerWidth) * centerProximityFactor;
@@ -339,9 +339,10 @@ export class Coin {
     
     // Calculate minimum required overlap (as a percentage of coin area)
     const coinArea = this.width * this.height;
-    // Further reduced overlap requirements for easier collection
-    // Reduced from 10%/15% to 5%/10% - only need minimal overlap to collect
-    const overlapRequirement = isBottomAreaCoin ? 0.05 : 0.10; 
+    // Much stricter overlap requirements for bottom coins
+    // Bottom coins now require substantial overlap (50% of coin area) 
+    // Upper coins remain at 10% for easier collection
+    const overlapRequirement = isBottomAreaCoin ? 0.5 : 0.10; 
     const minRequiredOverlap = coinArea * overlapRequirement;
     
     // Check if overlap is substantial
@@ -359,15 +360,39 @@ export class Coin {
     const maxDistance = (this.width + playerWidth + this.height + playerHeight) * distanceFactor;
     const proximityCheck = distance < maxDistance;
     
-    // Combine all methods - need to pass at least one test
-    // Include special proximity check for bottom coins
-    const shouldCollect = boxCollision || centerProximity || hasSubstantialOverlap || proximityCheck;
+    // Different collection logic based on position
+    // For bottom coins: Must pass AT LEAST TWO tests to be collected (much stricter)
+    // For upper coins: Only need to pass one test (more forgiving)
+    let shouldCollect;
+    
+    if (isBottomAreaCoin) {
+      // Count how many tests pass for bottom coins
+      let passedTests = 0;
+      if (boxCollision) passedTests++;
+      if (centerProximity) passedTests++;
+      if (hasSubstantialOverlap) passedTests++;
+      if (proximityCheck) passedTests++;
+      
+      // Need at least 2 tests to pass for bottom coins
+      shouldCollect = passedTests >= 2;
+    } else {
+      // Upper coins only need one test to pass (unchanged behavior)
+      shouldCollect = boxCollision || centerProximity || hasSubstantialOverlap || proximityCheck;
+    }
     
     if (shouldCollect) {
+      // Count passed tests for logging
+      let passedTestCount = 0;
+      if (boxCollision) passedTestCount++;
+      if (centerProximity) passedTestCount++;
+      if (hasSubstantialOverlap) passedTestCount++;
+      if (proximityCheck) passedTestCount++;
+      
       // Log the actual collection data for debugging
       console.log("Coin collection detected!", {
         location: isBottomAreaCoin ? "bottom_area" : "upper_area",
         y: this.y,
+        passedTestCount,
         method: {
           boxCollision,
           centerProximity,
