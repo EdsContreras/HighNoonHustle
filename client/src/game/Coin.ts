@@ -239,7 +239,7 @@ export class Coin {
     
     // Use a larger glow for bottom area coins to match their larger hitbox
     // Updated to match the new expanded hitbox values
-    const glowExpandFactor = isBottomAreaCoin ? 1.5 : 1.35; // Updated to match collision detection
+    const glowExpandFactor = isBottomAreaCoin ? 1.6 : 1.45; // Updated to match sheriff badge hitbox
     
     // Draw the glow circle - matches the expanded hitbox
     this.p.noStroke();
@@ -284,7 +284,8 @@ export class Coin {
     // INCREASED HITBOX SIZES: Make coin collection more reliable
     // Use a larger hitbox for bottom area coins to make them easier to collect
     // Upper coins are already easier to collect due to camera position and attention focus
-    const expandFactor = isBottomAreaCoin ? 1.5 : 1.35; // Increased from 1.35/1.20 to 1.5/1.35
+    // Matching Sheriff Badge hitbox sizes (1.6 for bottom, 1.45 for top)
+    const expandFactor = isBottomAreaCoin ? 1.6 : 1.45;
     
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
@@ -318,7 +319,8 @@ export class Coin {
     
     // For bottom coins, use a larger collection threshold
     // Increased thresholds for more reliable collection
-    const centerProximityFactor = isBottomAreaCoin ? 0.5 : 0.4; // Increased from 0.45/0.35 to 0.5/0.4
+    // Match sheriff badge proximity factors (0.55/0.45)
+    const centerProximityFactor = isBottomAreaCoin ? 0.55 : 0.45;
     
     // Set threshold for collection based on combined dimensions and location
     const collectionThresholdX = (this.width + playerWidth) * centerProximityFactor;
@@ -352,8 +354,8 @@ export class Coin {
     const distance = Math.sqrt(dx * dx + dy * dy);
     
     // Allow collection if player is within a generous distance threshold
-    // More generous for bottom coins (25%) vs upper coins (20%)
-    const distanceFactor = isBottomAreaCoin ? 0.25 : 0.20;
+    // Match sheriff badge proximity factors (0.3/0.25)
+    const distanceFactor = isBottomAreaCoin ? 0.3 : 0.25;
     const maxDistance = (this.width + playerWidth + this.height + playerHeight) * distanceFactor;
     const proximityCheck = distance < maxDistance;
     
