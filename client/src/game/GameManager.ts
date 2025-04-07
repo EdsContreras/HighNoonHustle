@@ -180,10 +180,14 @@ export class GameManager {
       
       this.lanes.push(lane);
       
-      // Add coins to safe zones (with some randomness but better distribution)
-      if (laneConfig.type === 'safe' && i > 0 && i < levelConfig.lanes.length - 1) {
+      // Add coins ONLY to upper safe zones (with some randomness but better distribution)
+      // Determine if this is an "upper" lane - first 50% of lanes (excluding start and end)
+      const isUpperLane = i > 0 && i < Math.floor(levelConfig.lanes.length * 0.5);
+      
+      if (laneConfig.type === 'safe' && isUpperLane) {
         // Don't add coins to the start or end zones
-        const coinsForLane = Math.floor(Math.random() * (COINS_PER_LANE + 1)); // 0 to COINS_PER_LANE coins
+        // More coins in upper lanes (2-5 coins per lane)
+        const coinsForLane = 2 + Math.floor(Math.random() * 4); 
         
         if (coinsForLane > 0) {
           // Create an array of potential positions across the grid
@@ -194,6 +198,8 @@ export class GameManager {
               y: laneY
             });
           }
+          
+          console.log(`Adding ${coinsForLane} coins to upper lane at y=${laneY}`);
           
           // Shuffle the positions to randomize which ones get coins
           this.shuffleArray(potentialPositions);
@@ -236,11 +242,16 @@ export class GameManager {
     // Create a pool of potential badge positions (different from coin positions)
     const potentialBadgePositions = [];
     
-    // Only use road lanes (more challenging to get the badge)
+    // Only use upper road lanes (more challenging to get the badge)
+    // Use a stricter definition than for coins - first 40% of lanes
     for (let i = 0; i < levelConfig.lanes.length; i++) {
       const laneConfig = levelConfig.lanes[i];
-      if (laneConfig.type === 'road' && i > 0 && i < levelConfig.lanes.length - 1) {
+      const isUpperRoadLane = i > 0 && i < Math.floor(levelConfig.lanes.length * 0.4);
+      
+      if (laneConfig.type === 'road' && isUpperRoadLane) {
         const laneY = i * laneHeight + laneHeight / 2;
+        
+        console.log(`Adding potential badge positions to upper road lane at y=${laneY}`);
         
         // Add multiple positions across this lane
         for (let gridX = 0; gridX < GRID_CELLS_X; gridX += 2) { // Space them out

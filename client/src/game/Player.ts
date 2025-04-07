@@ -92,7 +92,7 @@ export class Player {
       
       // Much improved snap threshold - if we're close enough to the target,
       // snap directly to it to make movement feel tighter and more responsive
-      if (totalDist < 0.1) { // Increased snap threshold for quicker snapping
+      if (totalDist < 0.25) { // Further increased snap threshold for even quicker snapping
         this.x = this.targetX;
         this.y = this.targetY;
         this.moving = false;
