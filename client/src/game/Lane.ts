@@ -157,34 +157,37 @@ export class Lane {
     
     const newObstacleWidth = OBSTACLE_PROPERTIES[this.obstacleType].width;
     
-    // Define the buffer multipliers for each obstacle type (how much extra space we need)
-    const bufferMultipliers = {
-      [ObstacleType.TRAIN]: 9.0,    // 900% for trains (up from 800%)
-      [ObstacleType.HORSE]: 6.0,    // 600% for horses (up from 500%)
-      [ObstacleType.TUMBLEWEED]: 4.5, // 450% for tumbleweeds (up from 400%)
-      [ObstacleType.CACTUS]: 4.5,   // 450% for cacti (up from 400%)
-      default: 4.0                 // 400% default (up from 350%)
-    };
+    // Use extreme buffer values to completely eliminate any overlap possibility
+    // These values are intentionally excessive to guarantee separation
+    let bufferMultiplier = 3.5; // 350% of obstacle width by default (up from 300%)
     
-    // Define absolute minimum distances in pixels for each obstacle type
-    const absoluteMinDistances = {
-      [ObstacleType.TRAIN]: 1800,   // 1800px minimum for trains (up from 1200px)
-      [ObstacleType.HORSE]: 780,    // 780px minimum for horses (up from 600px)
-      [ObstacleType.TUMBLEWEED]: 500, // 500px minimum for tumbleweeds (up from 400px)
-      [ObstacleType.CACTUS]: 500,   // 500px minimum for cacti (up from 400px)
-      default: 300                 // 300px minimum default (up from 250px)
-    };
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      bufferMultiplier = 8.0; // 800% for trains (up from 500%)
+    } else if (this.obstacleType === ObstacleType.HORSE) {
+      bufferMultiplier = 5.0; // 500% for horses (up from 400%)
+    } else if (this.obstacleType === ObstacleType.TUMBLEWEED) {
+      bufferMultiplier = 4.0; // 400% for tumbleweeds (up from 350%)
+    } else if (this.obstacleType === ObstacleType.CACTUS) {
+      bufferMultiplier = 4.0; // 400% for cacti (up from 350%)
+    }
     
-    // Get the buffer multiplier for this obstacle type
-    const bufferMultiplier = bufferMultipliers[this.obstacleType] || bufferMultipliers.default;
-    
-    // Get the absolute minimum distance for this obstacle type
-    const absoluteMinDistance = absoluteMinDistances[this.obstacleType] || absoluteMinDistances.default;
-    
-    // Calculate buffer based on obstacle width
     const buffer = newObstacleWidth * bufferMultiplier;
     
-    // Check for potential overlap with each existing obstacle
+    // Define absolute minimum distances in pixels for each obstacle type
+    // This ensures spacing is always large enough regardless of obstacle width
+    let absoluteMinDistance = 250; // Default 250px minimum separation (up from 200px)
+    
+    if (this.obstacleType === ObstacleType.TRAIN) {
+      absoluteMinDistance = 1200; // 1200px minimum for trains (up from 800px)
+    } else if (this.obstacleType === ObstacleType.HORSE) {
+      absoluteMinDistance = 600; // 600px minimum for horses (up from 450px)
+    } else if (this.obstacleType === ObstacleType.TUMBLEWEED) {
+      absoluteMinDistance = 400; // 400px minimum for tumbleweeds (up from 300px)
+    } else if (this.obstacleType === ObstacleType.CACTUS) {
+      absoluteMinDistance = 400; // 400px minimum for cacti (up from 300px)
+    }
+    
+    // Check against all existing obstacles
     for (const obstacle of this.obstacles) {
       const distance = Math.abs(obstacle.x - x);
       
@@ -195,20 +198,8 @@ export class Lane {
       const minDistance = Math.max(absoluteMinDistance, relativeMinDistance);
       
       if (distance < minDistance) {
-        // Enhanced debug log with more details
+        // Debug log when overlap is detected, with detailed type info
         console.log(`Obstacle overlap prevented: type=${this.obstacleType}, distance=${distance.toFixed(1)}, required=${minDistance.toFixed(1)}`);
-        
-        // Log the percent of required distance
-        const percentOfRequired = ((distance / minDistance) * 100).toFixed(1);
-        console.log(`Spacing is only ${percentOfRequired}% of required minimum (${distance.toFixed(1)}px vs ${minDistance.toFixed(1)}px)`);
-        
-        // For extremely close spawns (less than 50% of required), increase cooldown even more
-        if (distance < minDistance * 0.5) {
-          const veryClosePenalty = this.obstacleType === ObstacleType.TRAIN ? 800 : 400;
-          this.spawnCooldown = Math.min(3000, this.spawnCooldown + veryClosePenalty);
-          console.log(`Very close spawn attempt (${percentOfRequired}%), added extra cooldown penalty: +${veryClosePenalty}ms`);
-        }
-        
         return true; // Would overlap
       }
     }
@@ -237,25 +228,6 @@ export class Lane {
     
     if (timeSinceLastObstacle > obstacleInterval) {
       if (this.obstacleType) {
-        // Check number of active obstacles first
-        // Limit train lanes to 2 trains at a time to prevent overcrowding
-        // Limit horse lanes to 3 horses at a time
-        const activeObstaclesCount = this.obstacles.length;
-        
-        let maxObstacles = 4; // Default max for most obstacles
-        
-        if (this.obstacleType === ObstacleType.TRAIN) {
-          maxObstacles = 2; // No more than 2 trains per lane ever
-        } else if (this.obstacleType === ObstacleType.HORSE) {
-          maxObstacles = 3; // No more than 3 horses per lane
-        }
-        
-        if (activeObstaclesCount >= maxObstacles) {
-          // Skip spawning if we already have the maximum number of obstacles
-          // This ensures we don't overcrowd the lane
-          return;
-        }
-        
         // Check if we're out of the cooldown period for spawn attempts
         const timeSinceLastAttempt = currentTime - this.lastSpawnAttemptTime;
         
@@ -279,9 +251,6 @@ export class Lane {
           if (!this.wouldOverlap(newX)) {
             this.createObstacle(newX);
             this.lastObstacleTime = currentTime;
-            
-            // Log when obstacle is created, for debugging
-            console.log(`Created new ${this.obstacleType} at ${newX.toFixed(1)}, active count: ${this.obstacles.length}/${maxObstacles}`);
           } else {
             // If there would be an overlap, increase the cooldown significantly
             // to prevent constant overlap checking, especially for trains and horses
@@ -355,27 +324,24 @@ export class Lane {
     
     this.obstacles.push(obstacle);
     
-    // Note: We now enforce max obstacles in the update method before attempting to create new ones,
-    // so we shouldn't need this code anymore, but keeping it as a safety net with higher values
-    // to prevent any possible memory issues or performance degradation.
+    // Limit the number of obstacles for performance and to prevent overcrowding
+    // Use different limits based on obstacle type
+    let maxObstacles = 10; // Default is now 10 (down from 15) to prevent overcrowding
     
-    // Use much higher caps here since we're already enforcing limits earlier
-    let safetyMaxObstacles = 20; // Very high default cap as safety net only
-    
-    // Only need these as failsafes
+    // Use smaller limits for larger/longer obstacles to prevent train line backups
     if (this.obstacleType === ObstacleType.TRAIN) {
-      safetyMaxObstacles = 5; // Safety cap for trains
+      maxObstacles = 2; // Only allow 2 trains per lane to guarantee no overlap (down from 3)
     } else if (this.obstacleType === ObstacleType.HORSE) {
-      safetyMaxObstacles = 8; // Safety cap for horses 
+      maxObstacles = 4; // Only allow 4 horses per lane (down from 5)
+    } else if (this.obstacleType === ObstacleType.TUMBLEWEED) {
+      maxObstacles = 6; // Only allow 6 tumbleweeds per lane (down from 8)
     }
     
-    // Only as extreme safety measure
-    if (this.obstacles.length > safetyMaxObstacles) {
-      console.log(`SAFETY CAP: Removing excess obstacles for ${this.obstacleType}, count: ${this.obstacles.length}`);
-      // Remove oldest obstacles until we're under the cap
-      while (this.obstacles.length > safetyMaxObstacles) {
-        this.obstacles.shift();
-      }
+    // If we're over the limit, remove the oldest obstacles
+    if (this.obstacles.length > maxObstacles) {
+      // Log when we're hitting the obstacle limit for debugging
+      console.log(`Obstacle limit reached for ${this.obstacleType}: removing oldest obstacle`);
+      this.obstacles.shift(); // Remove the oldest obstacle
     }
   }
   
