@@ -95,7 +95,7 @@ export class Obstacle {
   public height: number;
   public speed: number;
   public type: ObstacleType;
-  private direction: number;
+  public direction: number; // Make direction public so Lane can access it
   private image: p5.Image | null;
   private animationFrame: number = 0;
   private animationSpeed: number = 0.2; // Controls animation speed
@@ -190,8 +190,20 @@ export class Obstacle {
     // Use whichever is larger - calculated or minimum movement
     const finalMovement = (Math.abs(movement) < Math.abs(minMovement)) ? minMovement : movement;
     
-    // Apply the movement
-    this.x += finalMovement;
+    // FAILSAFE: Guarantee movement with an absolute bare minimum
+    // If for ANY reason the final movement would be effectively zero (floating point issues, etc.)
+    // Force move by at least 0.5 pixels in the correct direction
+    const absoluteMinimumMovement = 0.5 * Math.sign(this.direction);
+    
+    // Apply the movement, with absolute guarantee of movement
+    // The max() ensures the obstacle ALWAYS moves at least the minimum distance
+    // This is our final guaranteed movement failsafe
+    if (Math.abs(finalMovement) < Math.abs(absoluteMinimumMovement)) {
+      console.log(`CRITICAL ABSOLUTE FAILSAFE: Forcing ${this.type} movement - was ${finalMovement}, now ${absoluteMinimumMovement}`);
+      this.x += absoluteMinimumMovement;
+    } else {
+      this.x += finalMovement;
+    }
     
     // Every 100 frames (roughly 1-2 seconds), check and fix speeds if needed
     if (Math.random() < 0.01) { // Randomly check about 1% of the time

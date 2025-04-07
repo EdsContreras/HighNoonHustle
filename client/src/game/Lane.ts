@@ -14,6 +14,10 @@ export class Lane {
   private level: number;
   private height: number;
   
+  // CRITICAL: Position tracking to detect and fix stalled obstacles
+  private obstaclePositions: Map<string, number> = new Map(); // Track obstacle positions 
+  private lastPositionCheckTime: number = 0; // When we last checked positions
+  
   constructor(
     p: p5,
     y: number,
@@ -226,6 +230,79 @@ export class Lane {
   private lastSpawnAttemptTime: number = 0;
   private spawnCooldown: number = 250; // 250ms cooldown before retrying spawn
   
+  // Check and fix stalled obstacles
+  private checkAndFixStalledObstacles() {
+    // Get current time
+    const checkTime = this.p.millis();
+    
+    // Setup position check interval (every 3 seconds)
+    const POSITION_CHECK_INTERVAL = 3000; // 3 seconds
+    
+    // Perform position check and force movement if needed
+    if (checkTime - this.lastPositionCheckTime > POSITION_CHECK_INTERVAL) {
+      // Update the last check time 
+      this.lastPositionCheckTime = checkTime;
+      
+      // Check each obstacle's position against the last recorded position
+      for (const obstacle of this.obstacles) {
+        const id = obstacle.x.toString() + "_" + obstacle.y.toString(); // Simple ID for tracking
+        
+        if (this.obstaclePositions.has(id)) {
+          const lastPosition = this.obstaclePositions.get(id);
+          // Make sure lastPosition is defined
+          if (lastPosition !== undefined) {
+            const currentPos = obstacle.x;
+            
+            // Check if obstacle has moved less than 1 pixel since last check
+            if (Math.abs(currentPos - lastPosition) < 1) {
+              console.log(`CRITICAL: Detected stalled ${obstacle.type} at ${obstacle.x.toFixed(1)} - FORCING MOVEMENT`);
+              
+              // FORCE the obstacle to move a significant distance
+              // Use obstacle's own direction which is now public
+              const forceMovement = 5 * obstacle.direction;
+              obstacle.x += forceMovement;
+              
+              // Reset the speed to guaranteed minimum plus margin
+              const absoluteMinSpeeds = {
+                [ObstacleType.HORSE]: 1.5,      // Slightly higher than normal mins
+                [ObstacleType.TUMBLEWEED]: 1.0,
+                [ObstacleType.TRAIN]: 1.0,
+                [ObstacleType.CACTUS]: 0.8
+              };
+              
+              // Apply emergency speed boost
+              const emergencySpeed = absoluteMinSpeeds[obstacle.type] || 1.0;
+              // Use obstacle's own direction which is now public
+              obstacle.speed = emergencySpeed * obstacle.direction;
+              
+              console.log(`Emergency speed correction applied: ${obstacle.speed.toFixed(2)}`);
+            }
+          }
+        }
+        
+        // Update the position record for next check
+        this.obstaclePositions.set(id, obstacle.x);
+      }
+      
+      // Clean up any stale records to prevent memory leaks
+      // Only keep records for obstacles that still exist
+      const validKeys = new Set<string>();
+      for (const obstacle of this.obstacles) {
+        const id = obstacle.x.toString() + "_" + obstacle.y.toString();
+        validKeys.add(id);
+      }
+      
+      // Remove any keys that don't correspond to current obstacles
+      // Convert the keys() iterator to an array to avoid iteration issues
+      const keysToCheck = Array.from(this.obstaclePositions.keys());
+      for (const key of keysToCheck) {
+        if (!validKeys.has(key)) {
+          this.obstaclePositions.delete(key);
+        }
+      }
+    }
+  }
+  
   public update(width: number) {
     // Skip updates for safe zones
     if (this.type === 'safe') return;
@@ -307,10 +384,43 @@ export class Lane {
       }
     }
     
-    // Update obstacles
+    // CRITICAL: Update obstacles with guaranteed movement enforcement
     for (const obstacle of this.obstacles) {
+      // First normal update
       obstacle.update(width);
+      
+      // FAILSAFE: Additional check to guarantee movement - every 5 seconds, verify obstacle speeds
+      if (Math.random() < 0.005) { // ~30 frames (0.5 seconds) at 60fps 
+        // Define minimum speeds for each obstacle type that MUST be maintained
+        const absoluteMinSpeeds = {
+          [ObstacleType.HORSE]: 1.2,      // Horses move faster
+          [ObstacleType.TUMBLEWEED]: 0.8,  // Tumbleweeds match trains
+          [ObstacleType.TRAIN]: 0.8,       // Trains are slower but consistent
+          [ObstacleType.CACTUS]: 0.6       // Cacti are slowest but must still move
+        };
+        
+        // Get obstacle's current speed
+        const currentSpeed = Math.abs(obstacle.speed);
+        
+        // Get minimum required speed for this type of obstacle
+        const minRequiredSpeed = absoluteMinSpeeds[obstacle.type] || 0.8; // Default 0.8
+        
+        // Check if speed is too low
+        if (currentSpeed < minRequiredSpeed) {
+          // Force speed reset to minimum for this obstacle type
+          const newSpeed = minRequiredSpeed * Math.sign(obstacle.speed);
+          
+          // Log this critical speed restoration
+          console.log(`CRITICAL FAILSAFE: Obstacle movement enforced - ${obstacle.type} speed restored from ${currentSpeed.toFixed(2)} to ${newSpeed.toFixed(2)}`);
+          
+          // Apply the forced minimum speed
+          obstacle.speed = newSpeed;
+        }
+      }
     }
+    
+    // Call our position tracking and stalled obstacle detection method
+    this.checkAndFixStalledObstacles();
     
     // Remove obstacles that are far offscreen to improve performance
     // Use bigger offscreen bounds based on obstacle type to ensure we're not removing
