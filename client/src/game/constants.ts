@@ -11,7 +11,7 @@ export const VISIBLE_CELLS_Y = 8; // Reduced to zoom in more (was 10)
 export const PLAYER_WIDTH = 65; // Increased from 40 for better visibility
 export const PLAYER_HEIGHT = 65; // Increased from 40 for better visibility
 export const PLAYER_MOVE_COOLDOWN = 80; // Slightly reduced for more responsive controls
-export const PLAYER_MOVE_SPEED = 0.25; // Slightly reduced for smoother movement
+export const PLAYER_MOVE_SPEED = 0.1; // Significantly reduced for tighter movement
 
 // Game mechanics
 export const STARTING_LIVES = 3;

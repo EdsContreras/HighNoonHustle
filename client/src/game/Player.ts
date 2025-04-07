@@ -90,9 +90,9 @@ export class Player {
       this.y += moveY;
       this.moving = true;
       
-      // Improved snap threshold - if we're close enough to the target, 
-      // snap directly to it to prevent floating point imprecision issues
-      if (totalDist < 0.05) {
+      // Much improved snap threshold - if we're close enough to the target,
+      // snap directly to it to make movement feel tighter and more responsive
+      if (totalDist < 0.1) { // Increased snap threshold for quicker snapping
         this.x = this.targetX;
         this.y = this.targetY;
         this.moving = false;
