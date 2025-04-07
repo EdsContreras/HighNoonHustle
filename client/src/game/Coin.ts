@@ -237,9 +237,9 @@ export class Coin {
     // Determine if this is a bottom area coin
     const isBottomAreaCoin = this.y > 300;
     
-    // IMPROVED: Make the visual glow match the new expanded hitboxes
-    // This helps players see the actual collection area
-    const glowExpandFactor = isBottomAreaCoin ? 1.35 : 1.75; // Increased to match collection area
+    // Use a glow that accurately represents the actual hitbox
+    // Updated to match the new much stricter hitbox values for bottom coins
+    const glowExpandFactor = isBottomAreaCoin ? 1.0 : 1.45; // No expansion for bottom coins
     
     // Draw the glow circle - matches the expanded hitbox
     this.p.noStroke();
@@ -275,17 +275,17 @@ export class Coin {
   public contains(playerX: number, playerY: number, playerWidth: number, playerHeight: number): boolean {
     if (this.collected) return false;
     
-    // IMPROVED COIN COLLECTION: Make all coins more responsive to collect
+    // IMPROVED WITH LOCATION-BASED ADJUSTMENT: Make coin collection more consistent everywhere
     
     // Determine if this is a "bottom area" coin (closer to starting position)
     // Screen is typically 600 pixels tall, lower half would be y > 300
     const isBottomAreaCoin = this.y > 300;
     
-    // INCREASED HITBOX SIZES: Make all coins easier to collect
-    // Bottom area coins now have a larger hitbox for easier collection
-    // Upper coins also increased for better responsiveness
-    // Both types are more forgiving for better gameplay experience
-    const expandFactor = isBottomAreaCoin ? 1.35 : 1.75; // Increased from 1.0/1.45
+    // MUCH STRICTER HITBOX SIZES: Prevent accidental collection of bottom area coins
+    // Bottom area coins now have a very strict hitbox to prevent accidental collection
+    // Upper coins maintain their slightly larger hitbox for better visibility
+    // Bottom hitboxes are now much smaller than sheriff badges for more precision
+    const expandFactor = isBottomAreaCoin ? 1.0 : 1.45;
     
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
@@ -317,9 +317,10 @@ export class Coin {
     const dx = Math.abs(playerCenterX - this.x);
     const dy = Math.abs(playerCenterY - this.y);
     
-    // IMPROVED: More generous proximity factors for all coins
-    // Substantially increased for better coin collection on both top and bottom coins
-    const centerProximityFactor = isBottomAreaCoin ? 0.45 : 0.55; // Increased from 0.2/0.45
+    // For bottom coins, use a much more strict collection threshold
+    // Extremely strict threshold for bottom coins to avoid any accidental collection
+    // Keep the upper coin threshold the same
+    const centerProximityFactor = isBottomAreaCoin ? 0.2 : 0.45;
     
     // Set threshold for collection based on combined dimensions and location
     const collectionThresholdX = (this.width + playerWidth) * centerProximityFactor;
@@ -338,10 +339,10 @@ export class Coin {
     
     // Calculate minimum required overlap (as a percentage of coin area)
     const coinArea = this.width * this.height;
-    // IMPROVED: Reduced overlap requirements for easier collection
-    // Significantly reduced overlap requirements for all coins
-    // Bottom coins now require much less overlap (20% vs previous 50%)
-    const overlapRequirement = isBottomAreaCoin ? 0.2 : 0.05; // Reduced from 0.5/0.1
+    // Much stricter overlap requirements for bottom coins
+    // Bottom coins now require substantial overlap (50% of coin area) 
+    // Upper coins remain at 10% for easier collection
+    const overlapRequirement = isBottomAreaCoin ? 0.5 : 0.10; 
     const minRequiredOverlap = coinArea * overlapRequirement;
     
     // Check if overlap is substantial
@@ -353,19 +354,31 @@ export class Coin {
     // Simple distance check from player center to coin center
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    // IMPROVED: More forgiving distance threshold for all coins
-    // Significantly increased distance factors for easier collection
-    const distanceFactor = isBottomAreaCoin ? 0.35 : 0.4; // Increased from 0.2/0.25
+    // Allow collection if player is within a reasonable distance threshold
+    // Much more strict for bottom coins to avoid accidental collection
+    const distanceFactor = isBottomAreaCoin ? 0.2 : 0.25;
     const maxDistance = (this.width + playerWidth + this.height + playerHeight) * distanceFactor;
     const proximityCheck = distance < maxDistance;
     
-    // IMPROVED COLLECTION LOGIC: Make all coins equally responsive
-    // Both bottom and top coins now use the same collection rules
-    // Any coin can be collected if ANY detection method passes
+    // Different collection logic based on position
+    // For bottom coins: Must pass AT LEAST TWO tests to be collected (much stricter)
+    // For upper coins: Only need to pass one test (more forgiving)
+    let shouldCollect;
     
-    // SIMPLIFIED: All coins now only need to pass one test for collection
-    // This makes coin collection much more responsive and consistent
-    const shouldCollect = boxCollision || centerProximity || hasSubstantialOverlap || proximityCheck;
+    if (isBottomAreaCoin) {
+      // Count how many tests pass for bottom coins
+      let passedTests = 0;
+      if (boxCollision) passedTests++;
+      if (centerProximity) passedTests++;
+      if (hasSubstantialOverlap) passedTests++;
+      if (proximityCheck) passedTests++;
+      
+      // Need at least 2 tests to pass for bottom coins
+      shouldCollect = passedTests >= 2;
+    } else {
+      // Upper coins only need one test to pass (unchanged behavior)
+      shouldCollect = boxCollision || centerProximity || hasSubstantialOverlap || proximityCheck;
+    }
     
     if (shouldCollect) {
       // Count passed tests for logging

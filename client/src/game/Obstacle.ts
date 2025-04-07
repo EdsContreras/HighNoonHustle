@@ -95,7 +95,7 @@ export class Obstacle {
   public height: number;
   public speed: number;
   public type: ObstacleType;
-  public direction: number; // Make direction public so Lane can access it
+  private direction: number;
   private image: p5.Image | null;
   private animationFrame: number = 0;
   private animationSpeed: number = 0.2; // Controls animation speed
@@ -115,28 +115,7 @@ export class Obstacle {
     this.x = x;
     this.y = y;
     this.type = type;
-    
-    // Define absolute minimum speeds for each obstacle type
-    const typeMinSpeeds = {
-      [ObstacleType.HORSE]: 1.2,      // Horses move faster
-      [ObstacleType.TUMBLEWEED]: 0.8,  // Tumbleweeds match trains
-      [ObstacleType.TRAIN]: 0.8,       // Trains are slower but consistent
-      [ObstacleType.CACTUS]: 0.6       // Cacti are slowest but must still move
-    };
-    
-    // Calculate base speed 
-    let calculatedSpeed = speed * OBSTACLE_PROPERTIES[type].speedMultiplier;
-    
-    // Get minimum speed for this type
-    const minSpeedForType = typeMinSpeeds[type] || 0.8;
-    
-    // ALWAYS enforce minimum speed on creation
-    // This ensures all obstacles start with a good speed
-    calculatedSpeed = Math.max(calculatedSpeed, minSpeedForType);
-    
-    console.log(`${type} created with enforced minimum speed: ${calculatedSpeed.toFixed(2)}`);
-    
-    this.speed = calculatedSpeed;
+    this.speed = speed * OBSTACLE_PROPERTIES[type].speedMultiplier;
     this.direction = direction; // 1 for right, -1 for left
     
     // Set dimensions based on obstacle type
@@ -161,73 +140,14 @@ export class Obstacle {
   }
   
   public update(canvasWidth: number) {
-    // CRITICAL: For all obstacles, ensure a minimum speed based on obstacle type
-    // These are absolute minimums that will be enforced every frame
-    const typeMinSpeeds = {
-      [ObstacleType.HORSE]: 1.2,      // Horses move faster
-      [ObstacleType.TUMBLEWEED]: 0.8,  // Tumbleweeds match trains
-      [ObstacleType.TRAIN]: 0.8,       // Trains are slower but consistent
-      [ObstacleType.CACTUS]: 0.6       // Cacti are slowest but must still move
-    };
+    // Move the obstacle
+    this.x += this.speed * this.direction;
     
-    // Get minimum speed for this obstacle type
-    const absoluteMinSpeed = typeMinSpeeds[this.type] || 0.8;
-    
-    // ALWAYS enforce minimum speed for ALL obstacle types
-    // This ensures obstacles NEVER stop moving regardless of type
-    if (Math.abs(this.speed) < absoluteMinSpeed) {
-      this.speed = absoluteMinSpeed * Math.sign(this.direction);
-      console.log(`Enforcing minimum speed for ${this.type}: now ${this.speed}`);
-    }
-    
-    // Calculate movement with guaranteed minimum
-    const movement = this.speed * this.direction;
-    
-    // ALWAYS use a minimum movement value (0.5 pixels per frame)
-    // This absolutely ensures movement even if calculations result in very small values
-    const minMovement = 0.5 * Math.sign(this.direction); 
-    
-    // Use whichever is larger - calculated or minimum movement
-    const finalMovement = (Math.abs(movement) < Math.abs(minMovement)) ? minMovement : movement;
-    
-    // FAILSAFE: Guarantee movement with an absolute bare minimum
-    // If for ANY reason the final movement would be effectively zero (floating point issues, etc.)
-    // Force move by at least 0.5 pixels in the correct direction
-    const absoluteMinimumMovement = 0.5 * Math.sign(this.direction);
-    
-    // Apply the movement, with absolute guarantee of movement
-    // The max() ensures the obstacle ALWAYS moves at least the minimum distance
-    // This is our final guaranteed movement failsafe
-    if (Math.abs(finalMovement) < Math.abs(absoluteMinimumMovement)) {
-      console.log(`CRITICAL ABSOLUTE FAILSAFE: Forcing ${this.type} movement - was ${finalMovement}, now ${absoluteMinimumMovement}`);
-      this.x += absoluteMinimumMovement;
-    } else {
-      this.x += finalMovement;
-    }
-    
-    // Every 100 frames (roughly 1-2 seconds), check and fix speeds if needed
-    if (Math.random() < 0.01) { // Randomly check about 1% of the time
-      // Force speed reset to at least minimum for obstacle type
-      const resetSpeed = Math.max(absoluteMinSpeed, Math.abs(this.speed)) * Math.sign(this.direction);
-      
-      if (Math.abs(this.speed) < absoluteMinSpeed) {
-        console.log(`Random speed check - fixing ${this.type} speed from ${this.speed} to ${resetSpeed}`);
-        this.speed = resetSpeed;
-      }
-    }
-    
-    // Wrap around when off-screen - with expanded boundaries for larger obstacles
-    let wrapThreshold = this.width / 2;
-    if (this.type === ObstacleType.TRAIN) {
-      wrapThreshold = this.width;  // Larger threshold for trains
-    }
-    
-    if (this.direction > 0 && this.x > canvasWidth + wrapThreshold) {
-      this.x = -wrapThreshold;
-      console.log(`${this.type} wrapped from right edge to left`);
-    } else if (this.direction < 0 && this.x < -wrapThreshold) {
-      this.x = canvasWidth + wrapThreshold;
-      console.log(`${this.type} wrapped from left edge to right`);
+    // Wrap around when off-screen
+    if (this.direction > 0 && this.x > canvasWidth + this.width / 2) {
+      this.x = -this.width / 2;
+    } else if (this.direction < 0 && this.x < -this.width / 2) {
+      this.x = canvasWidth + this.width / 2;
     }
     
     // Update animation frame

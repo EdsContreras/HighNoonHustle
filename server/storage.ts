@@ -70,11 +70,11 @@ export class MemStorage implements IStorage {
   // Helper method to add some default high scores
   private addDefaultHighScores() {
     const defaultScores = [
-      { playerName: "BUCK", score: 9500, level: 3 },
-      { playerName: "COLTY", score: 8200, level: 3 },
-      { playerName: "JESS", score: 7800, level: 3 },
-      { playerName: "WYATT", score: 6500, level: 2 },
-      { playerName: "CALAMJ", score: 5300, level: 2 }
+      { playerName: "JOE", score: 9500, level: 3 },
+      { playerName: "MIKE", score: 8200, level: 3 },
+      { playerName: "SARA", score: 7800, level: 3 },
+      { playerName: "BILL", score: 6500, level: 2 },
+      { playerName: "ANNE", score: 5300, level: 2 }
     ];
     
     for (const score of defaultScores) {
