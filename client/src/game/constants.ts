@@ -33,9 +33,9 @@ export const INVINCIBILITY_DURATION = 3000; // 3 seconds of invincibility
 export const POINTS_FOR_BADGE = 500; // Points for collecting a sheriff badge
 
 // Level design
-export const INITIAL_OBSTACLE_SPEED = 1;
-export const SPEED_INCREMENT_PER_LEVEL = 0.3;
-export const MAX_OBSTACLE_SPEED = 5;
+export const INITIAL_OBSTACLE_SPEED = 1.5; // Increased from 1 to prevent obstacles from appearing to stop
+export const SPEED_INCREMENT_PER_LEVEL = 0.4; // Increased from 0.3 for more dynamic gameplay
+export const MAX_OBSTACLE_SPEED = 6; // Increased to allow for faster movement in higher levels
 
 // Obstacle patterns and types
 export enum ObstacleType {
@@ -68,7 +68,7 @@ export const OBSTACLE_PROPERTIES = {
   [ObstacleType.CACTUS]: {
     width: 65, // Increased from 40 for better visibility
     height: 90, // Increased from 60 for better visibility
-    speedMultiplier: 0,
+    speedMultiplier: 0.7, // Changed from 0 to ensure movement
     deadly: true
   }
 };

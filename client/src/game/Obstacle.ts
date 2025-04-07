@@ -140,14 +140,41 @@ export class Obstacle {
   }
   
   public update(canvasWidth: number) {
-    // Move the obstacle
-    this.x += this.speed * this.direction;
+    // Calculate the movement for this frame
+    const movementAmount = this.speed * this.direction;
     
-    // Wrap around when off-screen
-    if (this.direction > 0 && this.x > canvasWidth + this.width / 2) {
-      this.x = -this.width / 2;
-    } else if (this.direction < 0 && this.x < -this.width / 2) {
-      this.x = canvasWidth + this.width / 2;
+    // Debug checking for very low movement values
+    if (Math.abs(movementAmount) < 0.01) {
+      console.warn(`Very low movement detected for ${this.type}: speed=${this.speed}, direction=${this.direction}`);
+      // Ensure a minimum speed to prevent obstacles from appearing to stop
+      this.speed = Math.max(this.speed, 0.5);
+    }
+    
+    // Apply guaranteed minimum movement to prevent stopping
+    const minMovement = 0.1 * this.direction;
+    const finalMovement = (Math.abs(movementAmount) < 0.1) ? minMovement : movementAmount;
+    
+    // Move the obstacle
+    this.x += finalMovement;
+    
+    // Debug log if speed is very low or zero
+    if (Math.abs(this.speed) < 0.2) {
+      console.log(`Fixed obstacle speed for ${this.type}: was ${this.speed}, now using minimum value`);
+      this.speed = Math.max(0.5, Math.abs(this.speed)) * Math.sign(this.speed || 1);
+    }
+    
+    // Wrap around when off-screen - with expanded boundaries for larger obstacles
+    let wrapThreshold = this.width / 2;
+    if (this.type === ObstacleType.TRAIN) {
+      wrapThreshold = this.width;  // Larger threshold for trains
+    }
+    
+    if (this.direction > 0 && this.x > canvasWidth + wrapThreshold) {
+      this.x = -wrapThreshold;
+      console.log(`${this.type} wrapped from right edge to left`);
+    } else if (this.direction < 0 && this.x < -wrapThreshold) {
+      this.x = canvasWidth + wrapThreshold;
+      console.log(`${this.type} wrapped from left edge to right`);
     }
     
     // Update animation frame
