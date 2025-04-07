@@ -116,14 +116,25 @@ export class Obstacle {
     this.y = y;
     this.type = type;
     
-    // Calculate base speed
+    // Define absolute minimum speeds for each obstacle type
+    const typeMinSpeeds = {
+      [ObstacleType.HORSE]: 1.2,      // Horses move faster
+      [ObstacleType.TUMBLEWEED]: 0.8,  // Tumbleweeds match trains
+      [ObstacleType.TRAIN]: 0.8,       // Trains are slower but consistent
+      [ObstacleType.CACTUS]: 0.6       // Cacti are slowest but must still move
+    };
+    
+    // Calculate base speed 
     let calculatedSpeed = speed * OBSTACLE_PROPERTIES[type].speedMultiplier;
     
-    // For tumbleweeds, ensure a minimum speed is applied right from the start
-    if (type === ObstacleType.TUMBLEWEED) {
-      calculatedSpeed = Math.max(calculatedSpeed, 1.0);
-      console.log(`Tumbleweed starting with enforced minimum speed: ${calculatedSpeed.toFixed(2)}`);
-    }
+    // Get minimum speed for this type
+    const minSpeedForType = typeMinSpeeds[type] || 0.8;
+    
+    // ALWAYS enforce minimum speed on creation
+    // This ensures all obstacles start with a good speed
+    calculatedSpeed = Math.max(calculatedSpeed, minSpeedForType);
+    
+    console.log(`${type} created with enforced minimum speed: ${calculatedSpeed.toFixed(2)}`);
     
     this.speed = calculatedSpeed;
     this.direction = direction; // 1 for right, -1 for left
@@ -150,35 +161,47 @@ export class Obstacle {
   }
   
   public update(canvasWidth: number) {
-    // Calculate the movement for this frame
-    const movementAmount = this.speed * this.direction;
+    // CRITICAL: For all obstacles, ensure a minimum speed based on obstacle type
+    // These are absolute minimums that will be enforced every frame
+    const typeMinSpeeds = {
+      [ObstacleType.HORSE]: 1.2,      // Horses move faster
+      [ObstacleType.TUMBLEWEED]: 0.8,  // Tumbleweeds match trains
+      [ObstacleType.TRAIN]: 0.8,       // Trains are slower but consistent
+      [ObstacleType.CACTUS]: 0.6       // Cacti are slowest but must still move
+    };
     
-    // Debug checking for very low movement values
-    if (Math.abs(movementAmount) < 0.01) {
-      console.warn(`Very low movement detected for ${this.type}: speed=${this.speed}, direction=${this.direction}`);
-      // Ensure a minimum speed to prevent obstacles from appearing to stop
-      this.speed = Math.max(this.speed, 0.5);
+    // Get minimum speed for this obstacle type
+    const absoluteMinSpeed = typeMinSpeeds[this.type] || 0.8;
+    
+    // ALWAYS enforce minimum speed for ALL obstacle types
+    // This ensures obstacles NEVER stop moving regardless of type
+    if (Math.abs(this.speed) < absoluteMinSpeed) {
+      this.speed = absoluteMinSpeed * Math.sign(this.direction);
+      console.log(`Enforcing minimum speed for ${this.type}: now ${this.speed}`);
     }
     
-    // Apply guaranteed minimum movement to prevent stopping
-    // Use a higher minimum for tumbleweeds which seem to have issues
-    const minMovementMultiplier = (this.type === ObstacleType.TUMBLEWEED) ? 0.3 : 0.1;
-    const minMovement = minMovementMultiplier * this.direction;
+    // Calculate movement with guaranteed minimum
+    const movement = this.speed * this.direction;
     
-    // For tumbleweeds, always use at least the minimum value to ensure they never stop
-    const finalMovement = (this.type === ObstacleType.TUMBLEWEED || Math.abs(movementAmount) < 0.1) 
-      ? minMovement 
-      : movementAmount;
+    // ALWAYS use a minimum movement value (0.5 pixels per frame)
+    // This absolutely ensures movement even if calculations result in very small values
+    const minMovement = 0.5 * Math.sign(this.direction); 
     
-    // Move the obstacle
+    // Use whichever is larger - calculated or minimum movement
+    const finalMovement = (Math.abs(movement) < Math.abs(minMovement)) ? minMovement : movement;
+    
+    // Apply the movement
     this.x += finalMovement;
     
-    // Debug log if speed is very low or zero
-    // For tumbleweeds, use a higher minimum speed to ensure they never stop
-    const minSpeed = this.type === ObstacleType.TUMBLEWEED ? 1.0 : 0.5;
-    if (Math.abs(this.speed) < 0.2 || this.type === ObstacleType.TUMBLEWEED) {
-      console.log(`Fixed obstacle speed for ${this.type}: was ${this.speed}, now using minimum value of ${minSpeed}`);
-      this.speed = Math.max(minSpeed, Math.abs(this.speed)) * Math.sign(this.speed || 1);
+    // Every 100 frames (roughly 1-2 seconds), check and fix speeds if needed
+    if (Math.random() < 0.01) { // Randomly check about 1% of the time
+      // Force speed reset to at least minimum for obstacle type
+      const resetSpeed = Math.max(absoluteMinSpeed, Math.abs(this.speed)) * Math.sign(this.direction);
+      
+      if (Math.abs(this.speed) < absoluteMinSpeed) {
+        console.log(`Random speed check - fixing ${this.type} speed from ${this.speed} to ${resetSpeed}`);
+        this.speed = resetSpeed;
+      }
     }
     
     // Wrap around when off-screen - with expanded boundaries for larger obstacles
