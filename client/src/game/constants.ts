@@ -56,7 +56,7 @@ export const OBSTACLE_PROPERTIES = {
   [ObstacleType.TUMBLEWEED]: {
     width: 65, // Increased from 40 for better visibility
     height: 65, // Increased from 40 for better visibility
-    speedMultiplier: 2,
+    speedMultiplier: 0.8, // Changed to match train speed multiplier
     deadly: true
   },
   [ObstacleType.TRAIN]: {
