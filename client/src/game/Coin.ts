@@ -237,9 +237,9 @@ export class Coin {
     // Determine if this is a bottom area coin
     const isBottomAreaCoin = this.y > 300;
     
-    // Use a larger glow for bottom area coins to match their larger hitbox
-    // Updated to match the new expanded hitbox values
-    const glowExpandFactor = isBottomAreaCoin ? 1.6 : 1.45; // Updated to match sheriff badge hitbox
+    // Use a glow that matches the actual hitbox size
+    // Updated to match the new balanced hitbox values
+    const glowExpandFactor = isBottomAreaCoin ? 1.3 : 1.45; // Smaller for bottom coins
     
     // Draw the glow circle - matches the expanded hitbox
     this.p.noStroke();
@@ -281,11 +281,11 @@ export class Coin {
     // Screen is typically 600 pixels tall, lower half would be y > 300
     const isBottomAreaCoin = this.y > 300;
     
-    // INCREASED HITBOX SIZES: Make coin collection more reliable
-    // Use a larger hitbox for bottom area coins to make them easier to collect
-    // Upper coins are already easier to collect due to camera position and attention focus
-    // Matching Sheriff Badge hitbox sizes (1.6 for bottom, 1.45 for top)
-    const expandFactor = isBottomAreaCoin ? 1.6 : 1.45;
+    // BALANCED HITBOX SIZES: Make coin collection more reliable but not too generous
+    // Bottom area coins have a more strict hitbox to avoid accidental collection
+    // Upper coins have a slightly larger hitbox for better visibility
+    // Slightly smaller than sheriff badges for more precise collection
+    const expandFactor = isBottomAreaCoin ? 1.3 : 1.45;
     
     const expandedWidth = this.width * expandFactor;
     const expandedHeight = this.height * expandFactor;
@@ -317,10 +317,10 @@ export class Coin {
     const dx = Math.abs(playerCenterX - this.x);
     const dy = Math.abs(playerCenterY - this.y);
     
-    // For bottom coins, use a larger collection threshold
-    // Increased thresholds for more reliable collection
-    // Match sheriff badge proximity factors (0.55/0.45)
-    const centerProximityFactor = isBottomAreaCoin ? 0.55 : 0.45;
+    // For bottom coins, use a more strict collection threshold
+    // More strict threshold for bottom coins to avoid accidental collection
+    // Keep the upper coin threshold the same
+    const centerProximityFactor = isBottomAreaCoin ? 0.4 : 0.45;
     
     // Set threshold for collection based on combined dimensions and location
     const collectionThresholdX = (this.width + playerWidth) * centerProximityFactor;
@@ -353,9 +353,9 @@ export class Coin {
     // Simple distance check from player center to coin center
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    // Allow collection if player is within a generous distance threshold
-    // Match sheriff badge proximity factors (0.3/0.25)
-    const distanceFactor = isBottomAreaCoin ? 0.3 : 0.25;
+    // Allow collection if player is within a reasonable distance threshold
+    // Much more strict for bottom coins to avoid accidental collection
+    const distanceFactor = isBottomAreaCoin ? 0.2 : 0.25;
     const maxDistance = (this.width + playerWidth + this.height + playerHeight) * distanceFactor;
     const proximityCheck = distance < maxDistance;
     
